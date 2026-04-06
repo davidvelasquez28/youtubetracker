@@ -612,6 +612,16 @@
     function removeNotes(id) {
       try { localStorage.removeItem(notesKey(id)); } catch(e) {}
     }
+    function posKey(id) { return 'yt-tracker-pos-' + id; }
+    function savePosition(id, sec) {
+      try { localStorage.setItem(posKey(id), String(sec)); } catch(e) {}
+    }
+    function loadPosition(id) {
+      try { const v = parseFloat(localStorage.getItem(posKey(id))); return isNaN(v) ? 0 : v; } catch(e) { return 0; }
+    }
+    function removePosition(id) {
+      try { localStorage.removeItem(posKey(id)); } catch(e) {}
+    }
 
     // ─────────────────────────────────────────────────────────
     // Helpers
@@ -826,6 +836,7 @@
     function deleteVideo(id) {
       videos = videos.filter(v => v.id!==id);
       removeNotes(id);
+      removePosition(id);
       saveVideos();
       if (activeVideoId === id) {
         activeVideoId = null;
@@ -913,7 +924,13 @@
         videoId,
         playerVars: { rel:0, modestbranding:1, enablejsapi:1 },
         events: {
-          onReady: function() { updateProgress(); startPolling(); },
+          onReady: function() {
+            // ── Restore saved position on load ──
+            const saved = loadPosition(videoId);
+            if (saved > 0) player.seekTo(saved, true);
+            updateProgress();
+            startPolling();
+          },
           onStateChange: function(e) {
             if (e.data===YT.PlayerState.PLAYING) { startPolling(); }
             else if (e.data===YT.PlayerState.PAUSED) { stopPolling(); updateProgress(); }
@@ -942,6 +959,8 @@
         const pct=dur>0?Math.round((cur/dur)*100):0;
         if(pf) pf.style.width=pct+'%';
         if(pp) pp.textContent=pct+'%';
+        // ── Auto-save position so it survives a refresh ──
+        if(activeVideoId && cur>0) savePosition(activeVideoId, cur);
       } catch(e) {}
     }
 
