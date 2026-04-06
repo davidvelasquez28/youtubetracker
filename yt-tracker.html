@@ -175,43 +175,66 @@
       padding: 24px;
       text-align: center;
     }
-
-    .sidebar-empty .empty-icon {
-      font-size: 2rem;
-      opacity: 0.3;
-    }
-
-    .sidebar-empty p {
-      font-size: 0.75rem;
-      color: var(--muted);
-      line-height: 1.6;
-    }
+    .sidebar-empty .empty-icon { font-size: 2rem; opacity: 0.3; }
+    .sidebar-empty p { font-size: 0.75rem; color: var(--muted); line-height: 1.6; }
 
     .video-list {
       flex: 1;
       overflow-y: auto;
       padding: 8px 0;
     }
-
     .video-list::-webkit-scrollbar { width: 4px; }
     .video-list::-webkit-scrollbar-track { background: transparent; }
     .video-list::-webkit-scrollbar-thumb { background: var(--border); border-radius: 4px; }
 
+    /* ── Video item ── */
     .video-item {
       display: flex;
       align-items: center;
       gap: 10px;
-      padding: 10px 14px;
+      padding: 10px 10px 10px 14px;
       cursor: pointer;
       border-left: 2px solid transparent;
       transition: background 0.12s, border-color 0.12s;
       position: relative;
+      user-select: none;
     }
     .video-item:hover { background: var(--surface2); }
     .video-item.active {
       background: var(--surface2);
       border-left-color: var(--accent);
     }
+    .video-item.done .vi-title { color: var(--muted); }
+
+    /* Dragging state */
+    .video-item.dragging {
+      opacity: 0.4;
+    }
+    .video-item.drag-over {
+      background: rgba(212,242,100,0.06);
+      border-top: 2px solid var(--accent);
+    }
+
+    /* Drag handle */
+    .vi-drag {
+      display: flex;
+      flex-direction: column;
+      gap: 2.5px;
+      padding: 4px 2px;
+      cursor: grab;
+      flex-shrink: 0;
+      opacity: 0;
+      transition: opacity 0.15s;
+    }
+    .vi-drag span {
+      display: block;
+      width: 14px;
+      height: 1.5px;
+      background: var(--muted);
+      border-radius: 2px;
+    }
+    .video-item:hover .vi-drag { opacity: 1; }
+    .vi-drag:active { cursor: grabbing; }
 
     /* Checkbox */
     .vi-check {
@@ -227,10 +250,7 @@
       cursor: pointer;
     }
     .vi-check:hover { border-color: var(--accent2); }
-    .vi-check.checked {
-      background: var(--accent2);
-      border-color: var(--accent2);
-    }
+    .vi-check.checked { background: var(--accent2); border-color: var(--accent2); }
     .vi-check.checked::after {
       content: '';
       display: block;
@@ -250,13 +270,10 @@
       object-fit: cover;
       flex-shrink: 0;
       border: 1px solid var(--border);
+      pointer-events: none;
     }
 
-    .vi-info {
-      flex: 1;
-      min-width: 0;
-    }
-
+    .vi-info { flex: 1; min-width: 0; pointer-events: none; }
     .vi-title {
       font-size: 0.75rem;
       color: var(--text);
@@ -266,12 +283,7 @@
       line-height: 1.3;
       margin-bottom: 3px;
     }
-    .video-item.done .vi-title { color: var(--muted); }
-
-    .vi-meta {
-      font-size: 0.65rem;
-      color: var(--muted);
-    }
+    .vi-meta { font-size: 0.65rem; color: var(--muted); }
 
     .vi-delete {
       background: none;
@@ -294,7 +306,6 @@
       overflow-y: auto;
       padding: 28px 32px 60px;
     }
-
     .main::-webkit-scrollbar { width: 4px; }
     .main::-webkit-scrollbar-track { background: transparent; }
     .main::-webkit-scrollbar-thumb { background: var(--border); border-radius: 4px; }
@@ -394,12 +405,7 @@
       height: 100%;
     }
 
-    /* Progress */
-    .progress-section {
-      padding: 18px 18px 0;
-      border-top: 1px solid var(--border);
-    }
-
+    .progress-section { padding: 18px 18px 0; border-top: 1px solid var(--border); }
     .progress-label {
       font-size: 0.65rem;
       color: var(--muted);
@@ -408,13 +414,7 @@
       margin-bottom: 8px;
     }
 
-    .time-display {
-      display: flex;
-      align-items: center;
-      gap: 12px;
-      margin-bottom: 12px;
-    }
-
+    .time-display { display: flex; align-items: center; gap: 12px; margin-bottom: 12px; }
     .time-now {
       font-size: 1.8rem;
       font-family: 'Fraunces', serif;
@@ -422,7 +422,6 @@
       letter-spacing: -1px;
       min-width: 80px;
     }
-
     .time-sep { color: var(--muted); font-size: 1.1rem; }
     .time-total { font-size: 0.9rem; color: var(--muted); }
 
@@ -434,7 +433,6 @@
       overflow: hidden;
       margin-bottom: 18px;
     }
-
     .progress-bar-fill {
       height: 100%;
       background: linear-gradient(90deg, var(--accent), var(--accent2));
@@ -442,7 +440,6 @@
       width: 0%;
       transition: width 0.5s linear;
     }
-
     .progress-pct {
       font-size: 0.72rem;
       color: var(--muted);
@@ -451,9 +448,7 @@
       margin-bottom: 14px;
     }
 
-    /* Notes */
     .notes-section { padding: 0 18px 20px; }
-
     .notes-label {
       font-size: 0.65rem;
       color: var(--muted);
@@ -482,13 +477,7 @@
     .notes-area::placeholder { color: var(--muted); }
     .notes-area:focus { border-color: var(--accent2); }
 
-    .notes-footer {
-      display: flex;
-      justify-content: space-between;
-      align-items: center;
-      margin-top: 9px;
-    }
-
+    .notes-footer { display: flex; justify-content: space-between; align-items: center; margin-top: 9px; }
     .timestamp-hint { font-size: 0.7rem; color: var(--muted); }
     .timestamp-hint span {
       color: var(--accent2);
@@ -511,12 +500,7 @@
     }
     .btn-save:hover { background: var(--accent2); color: #0e0e10; }
 
-    .save-confirm {
-      font-size: 0.7rem;
-      color: var(--accent2);
-      opacity: 0;
-      transition: opacity 0.3s;
-    }
+    .save-confirm { font-size: 0.7rem; color: var(--accent2); opacity: 0; transition: opacity 0.3s; }
     .save-confirm.show { opacity: 1; }
 
     .saved-notes { margin-top: 12px; display: flex; flex-direction: column; gap: 7px; }
@@ -543,9 +527,7 @@
       text-underline-offset: 3px;
     }
     .note-ts:hover { opacity: 0.7; }
-
     .note-text { font-size: 0.78rem; color: var(--text); line-height: 1.5; flex: 1; }
-
     .note-delete {
       background: none;
       border: none;
@@ -558,17 +540,10 @@
       transition: color 0.15s;
     }
     .note-delete:hover { color: var(--red); }
-
-    /* Responsive collapse for small screens */
-    @media (max-width: 640px) {
-      .sidebar { width: 220px; }
-      .main { padding: 16px 16px 48px; }
-    }
   </style>
 </head>
 <body>
 
-  <!-- Top bar -->
   <div class="topbar">
     <h1>YT Tracker</h1>
     <span class="topbar-sub">learning log</span>
@@ -579,8 +554,6 @@
   </div>
 
   <div class="layout">
-
-    <!-- Sidebar: video library -->
     <div class="sidebar">
       <div class="sidebar-header">
         <span>your videos</span>
@@ -593,29 +566,24 @@
       <div class="video-list" id="videoList" style="display:none;"></div>
     </div>
 
-    <!-- Main panel -->
     <div class="main" id="mainPanel">
       <div class="empty-state" id="emptyState">
         <div class="big-icon">📺</div>
         <h2>nothing selected yet</h2>
         <p>Add a video from the top bar, then click it to open.</p>
       </div>
-
-      <!-- Video card (hidden until a video is selected) -->
       <div class="video-card" id="videoCard" style="display:none;"></div>
     </div>
-
   </div>
 
-  <!-- Error toast -->
-  <div class="error-toast" id="errorToast">⚠ Couldn't find a valid YouTube video ID.</div>
+  <div class="error-toast" id="errorToast"></div>
 
   <script src="https://www.youtube.com/iframe_api"></script>
   <script>
     // ─────────────────────────────────────────────────────────
     // State
     // ─────────────────────────────────────────────────────────
-    let videos = [];          // [{id, title, addedAt, done}]
+    let videos = [];
     let activeVideoId = null;
     let currentNotes = [];
     let player = null;
@@ -658,38 +626,32 @@
       for (const re of patterns) { const m = url.match(re); if (m) return m[1]; }
       return null;
     }
-
     function formatTime(sec) {
       if (!sec || isNaN(sec) || sec < 0) return '0:00';
       sec = Math.floor(sec);
-      const h = Math.floor(sec / 3600), m = Math.floor((sec % 3600) / 60), s = sec % 60;
-      if (h > 0) return h + ':' + pad(m) + ':' + pad(s);
-      return m + ':' + pad(s);
+      const h = Math.floor(sec/3600), m = Math.floor((sec%3600)/60), s = sec%60;
+      if (h > 0) return h+':'+pad(m)+':'+pad(s);
+      return m+':'+pad(s);
     }
-    function pad(n) { return String(n).padStart(2, '0'); }
-
+    function pad(n) { return String(n).padStart(2,'0'); }
     function parseTimestamp(ts) {
       const p = ts.split(':').map(Number);
-      return p.length === 3 ? p[0]*3600 + p[1]*60 + p[2] : p[0]*60 + (p[1]||0);
+      return p.length === 3 ? p[0]*3600+p[1]*60+p[2] : p[0]*60+(p[1]||0);
     }
-
     function escapeHtml(s) {
       return s.replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/\n/g,'<br>');
     }
-
     function getCurrentTime() {
-      try { if (player && typeof player.getCurrentTime === 'function') return player.getCurrentTime(); } catch(e) {}
+      try { if (player && typeof player.getCurrentTime==='function') return player.getCurrentTime(); } catch(e) {}
       return 0;
     }
-
     function showToast(msg) {
       const t = document.getElementById('errorToast');
       t.textContent = msg;
       t.classList.add('show');
       setTimeout(() => t.classList.remove('show'), 2800);
     }
-
-    function thumbUrl(id) { return 'https://img.youtube.com/vi/' + id + '/mqdefault.jpg'; }
+    function thumbUrl(id) { return 'https://img.youtube.com/vi/'+id+'/mqdefault.jpg'; }
 
     // ─────────────────────────────────────────────────────────
     // Boot
@@ -701,35 +663,28 @@
     // Add video
     // ─────────────────────────────────────────────────────────
     document.getElementById('addBtn').addEventListener('click', addVideo);
-    document.getElementById('urlInput').addEventListener('keydown', e => { if (e.key === 'Enter') addVideo(); });
+    document.getElementById('urlInput').addEventListener('keydown', e => { if (e.key==='Enter') addVideo(); });
 
     function addVideo() {
       const input = document.getElementById('urlInput');
       const url = input.value.trim();
       const id = extractVideoId(url);
       if (!id) { showToast('⚠ Couldn\'t find a valid YouTube video ID.'); return; }
-
-      // Don't add duplicates
-      if (videos.find(v => v.id === id)) {
-        input.value = '';
-        openVideo(id);
-        return;
-      }
+      if (videos.find(v => v.id===id)) { input.value=''; openVideo(id); return; }
 
       const entry = { id, title: 'Loading…', addedAt: Date.now(), done: false };
-      videos.unshift(entry); // newest first
+      videos.unshift(entry);
       saveVideos();
       input.value = '';
 
-      // Fetch title async
-      fetch('https://www.youtube-nocookie.com/oembed?url=https://www.youtube.com/watch?v=' + id + '&format=json')
+      fetch('https://www.youtube-nocookie.com/oembed?url=https://www.youtube.com/watch?v='+id+'&format=json')
         .then(r => r.json())
         .then(d => {
-          const v = videos.find(v => v.id === id);
-          if (v) { v.title = d.title || 'YouTube Video'; saveVideos(); renderSidebar(); }
+          const v = videos.find(v => v.id===id);
+          if (v) { v.title = d.title||'YouTube Video'; saveVideos(); renderSidebar(); }
         })
         .catch(() => {
-          const v = videos.find(v => v.id === id);
+          const v = videos.find(v => v.id===id);
           if (v) { v.title = 'YouTube Video'; saveVideos(); renderSidebar(); }
         });
 
@@ -743,8 +698,7 @@
     function renderSidebar() {
       const list = document.getElementById('videoList');
       const empty = document.getElementById('sidebarEmpty');
-      const count = document.getElementById('videoCount');
-      count.textContent = videos.length;
+      document.getElementById('videoCount').textContent = videos.length;
 
       if (videos.length === 0) {
         empty.style.display = 'flex';
@@ -757,47 +711,112 @@
 
       videos.forEach(v => {
         const item = document.createElement('div');
-        item.className = 'video-item' + (v.id === activeVideoId ? ' active' : '') + (v.done ? ' done' : '');
+        item.className = 'video-item' + (v.id===activeVideoId?' active':'') + (v.done?' done':'');
         item.dataset.id = v.id;
+        item.draggable = true;
 
         item.innerHTML =
-          '<div class="vi-check' + (v.done ? ' checked' : '') + '" data-id="' + v.id + '" title="Mark complete"></div>' +
-          '<img class="vi-thumb" src="' + thumbUrl(v.id) + '" alt="" loading="lazy"/>' +
-          '<div class="vi-info">' +
-            '<div class="vi-title">' + escapeHtml(v.title) + '</div>' +
-            '<div class="vi-meta">' + (v.done ? '✓ done' : 'in progress') + '</div>' +
+          // drag handle (three lines)
+          '<div class="vi-drag" title="Drag to reorder">' +
+            '<span></span><span></span><span></span>' +
           '</div>' +
-          '<button class="vi-delete" data-id="' + v.id + '" title="Remove">×</button>';
+          '<div class="vi-check'+(v.done?' checked':'')+'" title="Mark complete"></div>' +
+          '<img class="vi-thumb" src="'+thumbUrl(v.id)+'" alt="" loading="lazy"/>' +
+          '<div class="vi-info">' +
+            '<div class="vi-title">'+escapeHtml(v.title)+'</div>' +
+            '<div class="vi-meta">'+(v.done?'✓ done':'in progress')+'</div>' +
+          '</div>' +
+          '<button class="vi-delete" title="Remove">×</button>';
 
-        // Click row → open video
+        // Click row → open (but not on interactive children)
         item.addEventListener('click', function(e) {
-          if (e.target.classList.contains('vi-check') || e.target.classList.contains('vi-delete')) return;
+          if (e.target.closest('.vi-check') || e.target.closest('.vi-delete') || e.target.closest('.vi-drag')) return;
           openVideo(v.id);
         });
 
-        // Checkbox toggle
         item.querySelector('.vi-check').addEventListener('click', function(e) {
           e.stopPropagation();
           toggleDone(v.id);
         });
 
-        // Delete
         item.querySelector('.vi-delete').addEventListener('click', function(e) {
           e.stopPropagation();
           deleteVideo(v.id);
         });
 
+        // ── Drag & drop ──
+        item.addEventListener('dragstart', onDragStart);
+        item.addEventListener('dragenter', onDragEnter);
+        item.addEventListener('dragover',  onDragOver);
+        item.addEventListener('dragleave', onDragLeave);
+        item.addEventListener('drop',      onDrop);
+        item.addEventListener('dragend',   onDragEnd);
+
         list.appendChild(item);
       });
     }
 
+    // ─────────────────────────────────────────────────────────
+    // Drag & drop logic
+    // ─────────────────────────────────────────────────────────
+    let dragSrcId = null;
+
+    function onDragStart(e) {
+      dragSrcId = this.dataset.id;
+      this.classList.add('dragging');
+      e.dataTransfer.effectAllowed = 'move';
+      e.dataTransfer.setData('text/plain', dragSrcId);
+    }
+
+    function onDragEnter(e) {
+      e.preventDefault();
+      if (this.dataset.id !== dragSrcId) this.classList.add('drag-over');
+    }
+
+    function onDragOver(e) {
+      e.preventDefault();
+      e.dataTransfer.dropEffect = 'move';
+    }
+
+    function onDragLeave(e) {
+      this.classList.remove('drag-over');
+    }
+
+    function onDrop(e) {
+      e.preventDefault();
+      this.classList.remove('drag-over');
+      const targetId = this.dataset.id;
+      if (!dragSrcId || dragSrcId === targetId) return;
+
+      const srcIdx = videos.findIndex(v => v.id === dragSrcId);
+      const tgtIdx = videos.findIndex(v => v.id === targetId);
+      if (srcIdx === -1 || tgtIdx === -1) return;
+
+      // Reorder
+      const [moved] = videos.splice(srcIdx, 1);
+      videos.splice(tgtIdx, 0, moved);
+
+      saveVideos();
+      renderSidebar();
+    }
+
+    function onDragEnd(e) {
+      dragSrcId = null;
+      // Clean up any leftover classes
+      document.querySelectorAll('.video-item').forEach(el => {
+        el.classList.remove('dragging', 'drag-over');
+      });
+    }
+
+    // ─────────────────────────────────────────────────────────
+    // Toggle / delete
+    // ─────────────────────────────────────────────────────────
     function toggleDone(id) {
-      const v = videos.find(v => v.id === id);
+      const v = videos.find(v => v.id===id);
       if (!v) return;
       v.done = !v.done;
       saveVideos();
       renderSidebar();
-      // If this is the active video, update its badge too
       if (id === activeVideoId) {
         const badge = document.getElementById('vcDoneBadge');
         if (badge) badge.classList.toggle('show', v.done);
@@ -805,13 +824,13 @@
     }
 
     function deleteVideo(id) {
-      videos = videos.filter(v => v.id !== id);
+      videos = videos.filter(v => v.id!==id);
       removeNotes(id);
       saveVideos();
       if (activeVideoId === id) {
         activeVideoId = null;
         stopPolling();
-        if (player && typeof player.destroy === 'function') { try { player.destroy(); } catch(e) {} player = null; }
+        if (player && typeof player.destroy==='function') { try { player.destroy(); } catch(e) {} player=null; }
         document.getElementById('videoCard').style.display = 'none';
         document.getElementById('emptyState').style.display = 'flex';
       }
@@ -819,11 +838,11 @@
     }
 
     // ─────────────────────────────────────────────────────────
-    // Open / render video in main panel
+    // Open video in main panel
     // ─────────────────────────────────────────────────────────
     function openVideo(id) {
       activeVideoId = id;
-      const v = videos.find(v => v.id === id);
+      const v = videos.find(v => v.id===id);
       currentNotes = loadNotes(id);
 
       document.getElementById('emptyState').style.display = 'none';
@@ -833,8 +852,8 @@
       card.innerHTML =
         '<div class="vc-titlebar">' +
           '<span class="yt-badge">YT</span>' +
-          '<div class="vc-title" id="vcTitle">' + escapeHtml(v ? v.title : 'Loading…') + '</div>' +
-          '<div class="vc-done-badge' + (v && v.done ? ' show' : '') + '" id="vcDoneBadge">' +
+          '<div class="vc-title" id="vcTitle">'+escapeHtml(v?v.title:'Loading…')+'</div>' +
+          '<div class="vc-done-badge'+(v&&v.done?' show':'')+'" id="vcDoneBadge">' +
             '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><polyline points="20 6 9 17 4 12"/></svg>' +
             'completed' +
           '</div>' +
@@ -863,24 +882,18 @@
           '<div class="saved-notes" id="savedNotes"></div>' +
         '</div>';
 
-      // Render existing notes
       currentNotes.forEach(n => renderNote(n, false));
 
-      // Wire up notes buttons
       document.getElementById('saveNoteBtn').addEventListener('click', saveNote);
       document.getElementById('notesArea').addEventListener('keydown', e => {
-        if ((e.ctrlKey || e.metaKey) && e.key === 'Enter') { e.preventDefault(); saveNote(); }
+        if ((e.ctrlKey||e.metaKey) && e.key==='Enter') { e.preventDefault(); saveNote(); }
       });
       document.getElementById('insertTsBtn').addEventListener('click', insertTimestamp);
 
-      // Build player
-      if (ytApiReady) {
-        buildPlayer(id);
-      } else {
-        pendingBuild = id;
-      }
+      if (ytApiReady) buildPlayer(id);
+      else pendingBuild = id;
 
-      renderSidebar(); // refresh active state
+      renderSidebar();
     }
 
     // ─────────────────────────────────────────────────────────
@@ -888,33 +901,26 @@
     // ─────────────────────────────────────────────────────────
     window.onYouTubeIframeAPIReady = function() {
       ytApiReady = true;
-      if (pendingBuild) { buildPlayer(pendingBuild); pendingBuild = null; }
+      if (pendingBuild) { buildPlayer(pendingBuild); pendingBuild=null; }
     };
 
     function buildPlayer(videoId) {
       stopPolling();
-      if (player && typeof player.destroy === 'function') { try { player.destroy(); } catch(e) {} player = null; }
-
+      if (player && typeof player.destroy==='function') { try { player.destroy(); } catch(e) {} player=null; }
       const target = document.getElementById('ytPlayerTarget');
       if (!target) return;
-
       player = new YT.Player('ytPlayerTarget', {
-        videoId: videoId,
-        playerVars: { rel: 0, modestbranding: 1, enablejsapi: 1 },
+        videoId,
+        playerVars: { rel:0, modestbranding:1, enablejsapi:1 },
         events: {
           onReady: function() { updateProgress(); startPolling(); },
           onStateChange: function(e) {
-            if (e.data === YT.PlayerState.PLAYING) { startPolling(); }
-            else if (e.data === YT.PlayerState.PAUSED) { stopPolling(); updateProgress(); }
-            else if (e.data === YT.PlayerState.ENDED) {
+            if (e.data===YT.PlayerState.PLAYING) { startPolling(); }
+            else if (e.data===YT.PlayerState.PAUSED) { stopPolling(); updateProgress(); }
+            else if (e.data===YT.PlayerState.ENDED) {
               stopPolling(); updateProgress();
-              // Auto-mark done
-              const v = videos.find(v => v.id === videoId);
-              if (v && !v.done) {
-                v.done = true;
-                saveVideos();
-                renderSidebar();
-              }
+              const v = videos.find(v => v.id===videoId);
+              if (v && !v.done) { v.done=true; saveVideos(); renderSidebar(); }
               const badge = document.getElementById('vcDoneBadge');
               if (badge) badge.classList.add('show');
             }
@@ -923,24 +929,19 @@
       });
     }
 
-    function startPolling() {
-      stopPolling();
-      pollInterval = setInterval(updateProgress, 500);
-    }
-    function stopPolling() {
-      if (pollInterval) { clearInterval(pollInterval); pollInterval = null; }
-    }
+    function startPolling() { stopPolling(); pollInterval=setInterval(updateProgress,500); }
+    function stopPolling() { if(pollInterval){clearInterval(pollInterval);pollInterval=null;} }
     function updateProgress() {
       try {
-        if (!player || typeof player.getCurrentTime !== 'function') return;
-        const cur = player.getCurrentTime(), dur = player.getDuration();
-        const tn = document.getElementById('timeNow'), tt = document.getElementById('timeTotal');
-        const pf = document.getElementById('progressFill'), pp = document.getElementById('progressPct');
-        if (tn) tn.textContent = formatTime(cur);
-        if (tt && dur > 0) tt.textContent = formatTime(dur);
-        const pct = dur > 0 ? Math.round((cur/dur)*100) : 0;
-        if (pf) pf.style.width = pct + '%';
-        if (pp) pp.textContent = pct + '%';
+        if (!player||typeof player.getCurrentTime!=='function') return;
+        const cur=player.getCurrentTime(), dur=player.getDuration();
+        const tn=document.getElementById('timeNow'), tt=document.getElementById('timeTotal');
+        const pf=document.getElementById('progressFill'), pp=document.getElementById('progressPct');
+        if(tn) tn.textContent=formatTime(cur);
+        if(tt&&dur>0) tt.textContent=formatTime(dur);
+        const pct=dur>0?Math.round((cur/dur)*100):0;
+        if(pf) pf.style.width=pct+'%';
+        if(pp) pp.textContent=pct+'%';
       } catch(e) {}
     }
 
@@ -952,25 +953,23 @@
       const ta = document.getElementById('notesArea');
       if (!ta) return;
       const pos = ta.selectionStart;
-      ta.value = ta.value.substring(0, pos) + '[' + ts + '] ' + ta.value.substring(pos);
+      ta.value = ta.value.substring(0,pos)+'['+ts+'] '+ta.value.substring(pos);
       ta.focus();
-      ta.setSelectionRange(pos + ts.length + 3, pos + ts.length + 3);
+      ta.setSelectionRange(pos+ts.length+3, pos+ts.length+3);
     }
 
     function saveNote() {
       const ta = document.getElementById('notesArea');
       if (!ta) return;
       const text = ta.value.trim();
-      if (!text || !activeVideoId) return;
-
-      const note = { ts: formatTime(getCurrentTime()), text, id: Date.now() };
+      if (!text||!activeVideoId) return;
+      const note = { ts:formatTime(getCurrentTime()), text, id:Date.now() };
       currentNotes.push(note);
       saveNotes(activeVideoId, currentNotes);
       renderNote(note, true);
       ta.value = '';
-
       const c = document.getElementById('saveConfirm');
-      if (c) { c.classList.add('show'); setTimeout(() => c.classList.remove('show'), 1800); }
+      if (c) { c.classList.add('show'); setTimeout(()=>c.classList.remove('show'),1800); }
     }
 
     function renderNote(note, prepend) {
@@ -980,19 +979,17 @@
       el.className = 'saved-note-item';
       el.dataset.id = note.id;
       el.innerHTML =
-        '<div class="note-ts" title="Jump to this time">' + note.ts + '</div>' +
-        '<div class="note-text">' + escapeHtml(note.text) + '</div>' +
+        '<div class="note-ts" title="Jump to this time">'+note.ts+'</div>' +
+        '<div class="note-text">'+escapeHtml(note.text)+'</div>' +
         '<button class="note-delete" title="Delete">×</button>';
-
       el.querySelector('.note-ts').addEventListener('click', () => {
-        try { if (player && typeof player.seekTo === 'function') { player.seekTo(parseTimestamp(note.ts), true); player.playVideo(); } } catch(e) {}
+        try { if(player&&typeof player.seekTo==='function'){player.seekTo(parseTimestamp(note.ts),true);player.playVideo();} } catch(e) {}
       });
       el.querySelector('.note-delete').addEventListener('click', () => {
-        currentNotes = currentNotes.filter(n => n.id !== note.id);
+        currentNotes = currentNotes.filter(n=>n.id!==note.id);
         saveNotes(activeVideoId, currentNotes);
         el.remove();
       });
-
       if (prepend) container.prepend(el); else container.appendChild(el);
     }
   </script>
