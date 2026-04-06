@@ -31,7 +31,6 @@
       padding: 48px 24px 80px;
     }
 
-    /* Subtle grid background */
     body::before {
       content: '';
       position: fixed;
@@ -73,7 +72,6 @@
       text-transform: uppercase;
     }
 
-    /* Input row */
     .input-row {
       display: flex;
       gap: 10px;
@@ -111,7 +109,6 @@
     .btn-load:hover { opacity: 0.85; }
     .btn-load:active { transform: scale(0.97); }
 
-    /* Error */
     .error-msg {
       font-size: 0.78rem;
       color: var(--red);
@@ -119,7 +116,6 @@
       display: none;
     }
 
-    /* Card */
     .card {
       background: var(--surface);
       border: 1px solid var(--border);
@@ -135,7 +131,6 @@
       to   { opacity: 1; transform: translateY(0); }
     }
 
-    /* Video title bar */
     .video-title-bar {
       padding: 16px 20px;
       border-bottom: 1px solid var(--border);
@@ -165,24 +160,40 @@
       white-space: nowrap;
       overflow: hidden;
       text-overflow: ellipsis;
+      flex: 1;
     }
 
-    /* Player embed */
+    .completed-badge {
+      display: none;
+      align-items: center;
+      gap: 6px;
+      background: rgba(106, 242, 176, 0.12);
+      border: 1px solid var(--accent2);
+      color: var(--accent2);
+      font-size: 0.7rem;
+      letter-spacing: 0.08em;
+      padding: 4px 10px;
+      border-radius: 99px;
+      white-space: nowrap;
+      flex-shrink: 0;
+      animation: fadeUp 0.3s ease both;
+    }
+    .completed-badge.show { display: flex; }
+    .completed-badge svg { width: 13px; height: 13px; }
+
     .player-wrap {
       position: relative;
       width: 100%;
       padding-top: 56.25%;
       background: #000;
     }
-    .player-wrap iframe {
+    #ytPlayer {
       position: absolute;
       inset: 0;
       width: 100%;
       height: 100%;
-      border: none;
     }
 
-    /* Progress section */
     .progress-section {
       padding: 20px 20px 0;
       border-top: 1px solid var(--border);
@@ -218,7 +229,6 @@
       color: var(--muted);
     }
 
-    /* Progress bar */
     .progress-bar-track {
       width: 100%;
       height: 6px;
@@ -244,7 +254,6 @@
       margin-bottom: 16px;
     }
 
-    /* Notes */
     .notes-section {
       padding: 0 20px 20px;
     }
@@ -317,7 +326,6 @@
     }
     .save-confirm.show { opacity: 1; }
 
-    /* Saved notes list */
     .saved-notes {
       margin-top: 14px;
       display: flex;
@@ -342,7 +350,11 @@
       white-space: nowrap;
       flex-shrink: 0;
       padding-top: 2px;
+      cursor: pointer;
+      text-decoration: underline;
+      text-underline-offset: 3px;
     }
+    .note-ts:hover { opacity: 0.7; }
 
     .note-text {
       font-size: 0.8rem;
@@ -363,6 +375,14 @@
       transition: color 0.15s;
     }
     .note-delete:hover { color: var(--red); }
+
+    .storage-notice {
+      font-size: 0.68rem;
+      color: var(--muted);
+      text-align: center;
+      margin-top: 20px;
+      letter-spacing: 0.05em;
+    }
   </style>
 </head>
 <body>
@@ -382,10 +402,16 @@
       <div class="video-title-bar">
         <span class="yt-badge">YT</span>
         <div class="video-title" id="videoTitle">Loading title…</div>
+        <div class="completed-badge" id="completedBadge">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round">
+            <polyline points="20 6 9 17 4 12"/>
+          </svg>
+          completed
+        </div>
       </div>
 
       <div class="player-wrap">
-        <iframe id="ytPlayer" allow="autoplay; encrypted-media" allowfullscreen></iframe>
+        <div id="ytPlayer"></div>
       </div>
 
       <div class="progress-section">
@@ -403,7 +429,7 @@
 
       <div class="notes-section">
         <div class="notes-label">notes</div>
-        <textarea class="notes-area" id="notesArea" placeholder="Jot something down… press 'Save Note' to stamp it with the current timestamp."></textarea>
+        <textarea class="notes-area" id="notesArea" placeholder="Jot something down… Ctrl+Enter to save. Click a saved timestamp to jump back."></textarea>
         <div class="notes-footer">
           <div class="timestamp-hint">
             <span id="insertTsBtn">Insert timestamp</span> into note
@@ -416,15 +442,38 @@
         <div class="saved-notes" id="savedNotes"></div>
       </div>
     </div>
+
+    <div class="storage-notice" id="storageNotice" style="display:none;">
+      💾 notes save automatically to this browser — they'll be here next time
+    </div>
   </div>
 
-  <!-- YouTube IFrame API -->
   <script src="https://www.youtube.com/iframe_api"></script>
   <script>
     let player = null;
     let pollInterval = null;
     let currentVideoId = null;
     let savedNotes = [];
+    let ytApiReady = false;
+    let pendingVideoId = null;
+
+    // ── localStorage ─────────────────────────────────────────
+    function storageKey(id)   { return 'yt-tracker-notes-' + id; }
+    function completedKey(id) { return 'yt-tracker-done-' + id; }
+
+    function loadNotes(id) {
+      try { return JSON.parse(localStorage.getItem(storageKey(id)) || '[]'); }
+      catch(e) { return []; }
+    }
+    function persistNotes(id, notes) {
+      try { localStorage.setItem(storageKey(id), JSON.stringify(notes)); } catch(e) {}
+    }
+    function isCompleted(id) {
+      return localStorage.getItem(completedKey(id)) === 'true';
+    }
+    function markDone(id) {
+      try { localStorage.setItem(completedKey(id), 'true'); } catch(e) {}
+    }
 
     // ── Helpers ──────────────────────────────────────────────
     function extractVideoId(url) {
@@ -442,13 +491,30 @@
     }
 
     function formatTime(sec) {
-      if (!sec || isNaN(sec)) return '0:00';
+      if (!sec || isNaN(sec) || sec < 0) return '0:00';
       sec = Math.floor(sec);
       const h = Math.floor(sec / 3600);
       const m = Math.floor((sec % 3600) / 60);
       const s = sec % 60;
-      if (h > 0) return `${h}:${String(m).padStart(2,'0')}:${String(s).padStart(2,'0')}`;
-      return `${m}:${String(s).padStart(2,'0')}`;
+      if (h > 0) return h + ':' + String(m).padStart(2,'0') + ':' + String(s).padStart(2,'0');
+      return m + ':' + String(s).padStart(2,'0');
+    }
+
+    function parseTimestamp(ts) {
+      const parts = ts.split(':').map(Number);
+      if (parts.length === 3) return parts[0]*3600 + parts[1]*60 + parts[2];
+      return parts[0]*60 + (parts[1] || 0);
+    }
+
+    function escapeHtml(s) {
+      return s.replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/\n/g,'<br>');
+    }
+
+    function getCurrentTime() {
+      try {
+        if (player && typeof player.getCurrentTime === 'function') return player.getCurrentTime();
+      } catch(e) {}
+      return 0;
     }
 
     // ── Load video ───────────────────────────────────────────
@@ -462,47 +528,90 @@
       const errorEl = document.getElementById('errorMsg');
       const videoId = extractVideoId(url);
 
-      if (!videoId) {
-        errorEl.style.display = 'block';
-        return;
-      }
+      if (!videoId) { errorEl.style.display = 'block'; return; }
       errorEl.style.display = 'none';
       currentVideoId = videoId;
-      savedNotes = [];
+
+      // Reset UI
+      document.getElementById('completedBadge').classList.remove('show');
       document.getElementById('savedNotes').innerHTML = '';
       document.getElementById('videoTitle').textContent = 'Loading title…';
+      document.getElementById('timeNow').textContent = '0:00';
+      document.getElementById('timeTotal').textContent = '—';
+      document.getElementById('progressFill').style.width = '0%';
+      document.getElementById('progressPct').textContent = '0%';
+      document.getElementById('card').classList.add('visible');
+      document.getElementById('storageNotice').style.display = 'block';
 
-      // Fetch title via oEmbed
-      fetch(`https://www.youtube-nocookie.com/oembed?url=https://www.youtube.com/watch?v=${videoId}&format=json`)
+      // Restore saved data for this video
+      savedNotes = loadNotes(videoId);
+      savedNotes.forEach(n => renderNote(n, false));
+      if (isCompleted(videoId)) {
+        document.getElementById('completedBadge').classList.add('show');
+      }
+
+      // Fetch title
+      fetch('https://www.youtube-nocookie.com/oembed?url=https://www.youtube.com/watch?v=' + videoId + '&format=json')
         .then(r => r.json())
         .then(d => { document.getElementById('videoTitle').textContent = d.title || 'YouTube Video'; })
         .catch(() => { document.getElementById('videoTitle').textContent = 'YouTube Video'; });
 
-      document.getElementById('card').classList.add('visible');
-
-      if (player && typeof player.loadVideoById === 'function') {
-        player.loadVideoById(videoId);
+      // Init player
+      if (ytApiReady) {
+        buildPlayer(videoId);
       } else {
-        initPlayer(videoId);
+        pendingVideoId = videoId;
       }
     }
 
     // ── YouTube IFrame API ───────────────────────────────────
     window.onYouTubeIframeAPIReady = function() {
-      // ready; player init happens on first load
+      ytApiReady = true;
+      if (pendingVideoId) {
+        buildPlayer(pendingVideoId);
+        pendingVideoId = null;
+      }
     };
 
-    function initPlayer(videoId) {
-      if (pollInterval) clearInterval(pollInterval);
+    function buildPlayer(videoId) {
+      stopPolling();
+
+      // Destroy old player and recreate target element
+      if (player && typeof player.destroy === 'function') {
+        try { player.destroy(); } catch(e) {}
+        player = null;
+      }
+
+      // Always recreate the div so YT has a clean target
+      const wrap = document.querySelector('.player-wrap');
+      const old = document.getElementById('ytPlayer');
+      if (old) old.remove();
+      const div = document.createElement('div');
+      div.id = 'ytPlayer';
+      div.style.cssText = 'position:absolute;inset:0;width:100%;height:100%;';
+      wrap.appendChild(div);
 
       player = new YT.Player('ytPlayer', {
         videoId: videoId,
-        playerVars: { rel: 0, modestbranding: 1 },
+        playerVars: { rel: 0, modestbranding: 1, enablejsapi: 1 },
         events: {
-          onReady: () => { startPolling(); },
-          onStateChange: (e) => {
-            if (e.data === YT.PlayerState.PLAYING) startPolling();
-            else if (e.data === YT.PlayerState.PAUSED || e.data === YT.PlayerState.ENDED) stopPolling(), updateProgress();
+          onReady: function() {
+            updateProgress();
+            startPolling();
+          },
+          onStateChange: function(e) {
+            if (e.data === YT.PlayerState.PLAYING) {
+              startPolling();
+            } else if (e.data === YT.PlayerState.PAUSED) {
+              stopPolling();
+              updateProgress();
+            } else if (e.data === YT.PlayerState.ENDED) {
+              stopPolling();
+              updateProgress();
+              // Mark completed
+              markDone(currentVideoId);
+              document.getElementById('completedBadge').classList.add('show');
+            }
           }
         }
       });
@@ -512,86 +621,82 @@
       stopPolling();
       pollInterval = setInterval(updateProgress, 500);
     }
+
     function stopPolling() {
-      if (pollInterval) clearInterval(pollInterval);
-      pollInterval = null;
+      if (pollInterval) { clearInterval(pollInterval); pollInterval = null; }
     }
 
     function updateProgress() {
-      if (!player || typeof player.getCurrentTime !== 'function') return;
-      const cur = player.getCurrentTime();
-      const dur = player.getDuration();
-      document.getElementById('timeNow').textContent = formatTime(cur);
-      document.getElementById('timeTotal').textContent = formatTime(dur);
-      const pct = dur > 0 ? Math.round((cur / dur) * 100) : 0;
-      document.getElementById('progressFill').style.width = pct + '%';
-      document.getElementById('progressPct').textContent = pct + '%';
+      try {
+        if (!player || typeof player.getCurrentTime !== 'function') return;
+        const cur = player.getCurrentTime();
+        const dur = player.getDuration();
+        document.getElementById('timeNow').textContent = formatTime(cur);
+        if (dur > 0) document.getElementById('timeTotal').textContent = formatTime(dur);
+        const pct = dur > 0 ? Math.round((cur / dur) * 100) : 0;
+        document.getElementById('progressFill').style.width = pct + '%';
+        document.getElementById('progressPct').textContent = pct + '%';
+      } catch(e) {}
     }
 
     // ── Notes ────────────────────────────────────────────────
     document.getElementById('insertTsBtn').addEventListener('click', () => {
-      const ts = formatTime(player ? player.getCurrentTime() : 0);
+      const ts = formatTime(getCurrentTime());
       const ta = document.getElementById('notesArea');
       const pos = ta.selectionStart;
-      const before = ta.value.substring(0, pos);
-      const after = ta.value.substring(pos);
-      ta.value = before + `[${ts}] ` + after;
+      ta.value = ta.value.substring(0, pos) + '[' + ts + '] ' + ta.value.substring(pos);
       ta.focus();
       ta.setSelectionRange(pos + ts.length + 3, pos + ts.length + 3);
     });
 
     document.getElementById('saveNoteBtn').addEventListener('click', saveNote);
+    document.getElementById('notesArea').addEventListener('keydown', e => {
+      if ((e.ctrlKey || e.metaKey) && e.key === 'Enter') { e.preventDefault(); saveNote(); }
+    });
 
     function saveNote() {
       const ta = document.getElementById('notesArea');
       const text = ta.value.trim();
-      if (!text) return;
+      if (!text || !currentVideoId) return;
 
-      const ts = formatTime(player ? player.getCurrentTime() : 0);
-      const note = { ts, text, id: Date.now() };
+      const note = { ts: formatTime(getCurrentTime()), text: text, id: Date.now() };
       savedNotes.push(note);
-      renderNote(note);
+      persistNotes(currentVideoId, savedNotes);
+      renderNote(note, true);
       ta.value = '';
 
-      const confirm = document.getElementById('saveConfirm');
-      confirm.classList.add('show');
-      setTimeout(() => confirm.classList.remove('show'), 1800);
+      const confirmEl = document.getElementById('saveConfirm');
+      confirmEl.classList.add('show');
+      setTimeout(() => confirmEl.classList.remove('show'), 1800);
     }
 
-    function renderNote(note) {
+    function renderNote(note, prepend) {
       const container = document.getElementById('savedNotes');
       const el = document.createElement('div');
       el.className = 'saved-note-item';
       el.dataset.id = note.id;
-      el.innerHTML = `
-        <div class="note-ts">${note.ts}</div>
-        <div class="note-text">${escapeHtml(note.text)}</div>
-        <button class="note-delete" title="Delete note">×</button>
-      `;
+      el.innerHTML =
+        '<div class="note-ts" title="Jump to this time">' + note.ts + '</div>' +
+        '<div class="note-text">' + escapeHtml(note.text) + '</div>' +
+        '<button class="note-delete" title="Delete">×</button>';
+
+      el.querySelector('.note-ts').addEventListener('click', () => {
+        try {
+          if (player && typeof player.seekTo === 'function') {
+            player.seekTo(parseTimestamp(note.ts), true);
+            player.playVideo();
+          }
+        } catch(e) {}
+      });
+
       el.querySelector('.note-delete').addEventListener('click', () => {
         savedNotes = savedNotes.filter(n => n.id !== note.id);
+        persistNotes(currentVideoId, savedNotes);
         el.remove();
       });
-      // clicking timestamp seeks the player
-      el.querySelector('.note-ts').style.cursor = 'pointer';
-      el.querySelector('.note-ts').title = 'Jump to this time';
-      el.querySelector('.note-ts').addEventListener('click', () => {
-        if (player && typeof player.seekTo === 'function') {
-          player.seekTo(parseTimestamp(note.ts), true);
-          player.playVideo();
-        }
-      });
-      container.prepend(el);
-    }
 
-    function parseTimestamp(ts) {
-      const parts = ts.split(':').map(Number);
-      if (parts.length === 3) return parts[0]*3600 + parts[1]*60 + parts[2];
-      return parts[0]*60 + (parts[1] || 0);
-    }
-
-    function escapeHtml(s) {
-      return s.replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/\n/g,'<br>');
+      if (prepend) container.prepend(el);
+      else container.appendChild(el);
     }
   </script>
 </body>
