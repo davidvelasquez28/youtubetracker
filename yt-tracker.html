@@ -1,7 +1,7 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-  <meta charset="UTF-8" />
+  <meta charset="UTF-8"/>
   <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
   <title>YT Learning Tracker</title>
   <link href="https://fonts.googleapis.com/css2?family=DM+Mono:wght@400;500&family=Fraunces:ital,wght@0,300;0,700;1,300&display=swap" rel="stylesheet"/>
@@ -27,8 +27,6 @@
       min-height: 100vh;
       display: flex;
       flex-direction: column;
-      align-items: center;
-      padding: 48px 24px 80px;
     }
 
     body::before {
@@ -43,115 +41,319 @@
       z-index: 0;
     }
 
-    .wrapper {
-      width: 100%;
-      max-width: 680px;
+    /* ── Top bar ── */
+    .topbar {
       position: relative;
-      z-index: 1;
-    }
-
-    header {
-      margin-bottom: 48px;
+      z-index: 10;
       display: flex;
-      align-items: baseline;
-      gap: 12px;
+      align-items: center;
+      gap: 16px;
+      padding: 18px 28px;
+      border-bottom: 1px solid var(--border);
+      background: var(--bg);
     }
 
-    header h1 {
+    .topbar h1 {
       font-family: 'Fraunces', serif;
       font-weight: 700;
-      font-size: 2rem;
+      font-size: 1.5rem;
       color: var(--accent);
       letter-spacing: -0.5px;
+      white-space: nowrap;
     }
 
-    header span {
-      font-size: 0.75rem;
+    .topbar-sub {
+      font-size: 0.68rem;
       color: var(--muted);
       letter-spacing: 0.12em;
       text-transform: uppercase;
+      margin-right: auto;
     }
 
-    .input-row {
+    .add-row {
       display: flex;
-      gap: 10px;
-      margin-bottom: 28px;
+      gap: 8px;
+      flex: 1;
+      max-width: 520px;
     }
 
-    .input-row input {
+    .add-row input {
       flex: 1;
       background: var(--surface);
       border: 1px solid var(--border);
       color: var(--text);
       font-family: 'DM Mono', monospace;
-      font-size: 0.82rem;
-      padding: 12px 16px;
+      font-size: 0.8rem;
+      padding: 9px 14px;
       border-radius: 6px;
       outline: none;
       transition: border-color 0.2s;
     }
-    .input-row input::placeholder { color: var(--muted); }
-    .input-row input:focus { border-color: var(--accent); }
+    .add-row input::placeholder { color: var(--muted); }
+    .add-row input:focus { border-color: var(--accent); }
 
-    .btn-load {
+    .btn-add {
       background: var(--accent);
       color: #0e0e10;
       border: none;
       font-family: 'DM Mono', monospace;
-      font-size: 0.82rem;
+      font-size: 0.8rem;
       font-weight: 500;
-      padding: 12px 20px;
+      padding: 9px 18px;
       border-radius: 6px;
       cursor: pointer;
       white-space: nowrap;
       transition: opacity 0.15s, transform 0.1s;
     }
-    .btn-load:hover { opacity: 0.85; }
-    .btn-load:active { transform: scale(0.97); }
+    .btn-add:hover { opacity: 0.85; }
+    .btn-add:active { transform: scale(0.97); }
 
-    .error-msg {
+    .error-toast {
+      position: fixed;
+      bottom: 24px;
+      left: 50%;
+      transform: translateX(-50%) translateY(20px);
+      background: var(--red);
+      color: #fff;
       font-size: 0.78rem;
-      color: var(--red);
-      margin-bottom: 16px;
-      display: none;
+      padding: 10px 20px;
+      border-radius: 6px;
+      opacity: 0;
+      pointer-events: none;
+      transition: opacity 0.2s, transform 0.2s;
+      z-index: 999;
+    }
+    .error-toast.show { opacity: 1; transform: translateX(-50%) translateY(0); }
+
+    /* ── Layout ── */
+    .layout {
+      position: relative;
+      z-index: 1;
+      display: flex;
+      flex: 1;
+      overflow: hidden;
+      height: calc(100vh - 65px);
     }
 
-    .card {
+    /* ── Sidebar ── */
+    .sidebar {
+      width: 280px;
+      flex-shrink: 0;
+      border-right: 1px solid var(--border);
+      display: flex;
+      flex-direction: column;
+      overflow: hidden;
+    }
+
+    .sidebar-header {
+      padding: 14px 18px;
+      border-bottom: 1px solid var(--border);
+      font-size: 0.65rem;
+      color: var(--muted);
+      letter-spacing: 0.14em;
+      text-transform: uppercase;
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+    }
+
+    .video-count {
+      background: var(--surface2);
+      color: var(--muted);
+      font-size: 0.65rem;
+      padding: 2px 8px;
+      border-radius: 99px;
+    }
+
+    .sidebar-empty {
+      flex: 1;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+      gap: 10px;
+      padding: 24px;
+      text-align: center;
+    }
+
+    .sidebar-empty .empty-icon {
+      font-size: 2rem;
+      opacity: 0.3;
+    }
+
+    .sidebar-empty p {
+      font-size: 0.75rem;
+      color: var(--muted);
+      line-height: 1.6;
+    }
+
+    .video-list {
+      flex: 1;
+      overflow-y: auto;
+      padding: 8px 0;
+    }
+
+    .video-list::-webkit-scrollbar { width: 4px; }
+    .video-list::-webkit-scrollbar-track { background: transparent; }
+    .video-list::-webkit-scrollbar-thumb { background: var(--border); border-radius: 4px; }
+
+    .video-item {
+      display: flex;
+      align-items: center;
+      gap: 10px;
+      padding: 10px 14px;
+      cursor: pointer;
+      border-left: 2px solid transparent;
+      transition: background 0.12s, border-color 0.12s;
+      position: relative;
+    }
+    .video-item:hover { background: var(--surface2); }
+    .video-item.active {
+      background: var(--surface2);
+      border-left-color: var(--accent);
+    }
+
+    /* Checkbox */
+    .vi-check {
+      width: 18px;
+      height: 18px;
+      border: 1.5px solid var(--border);
+      border-radius: 4px;
+      flex-shrink: 0;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      transition: background 0.15s, border-color 0.15s;
+      cursor: pointer;
+    }
+    .vi-check:hover { border-color: var(--accent2); }
+    .vi-check.checked {
+      background: var(--accent2);
+      border-color: var(--accent2);
+    }
+    .vi-check.checked::after {
+      content: '';
+      display: block;
+      width: 5px;
+      height: 9px;
+      border: 2px solid #0e0e10;
+      border-top: none;
+      border-left: none;
+      transform: rotate(45deg) translate(-1px, -1px);
+    }
+
+    .vi-thumb {
+      width: 48px;
+      height: 34px;
+      border-radius: 3px;
+      background: var(--surface2);
+      object-fit: cover;
+      flex-shrink: 0;
+      border: 1px solid var(--border);
+    }
+
+    .vi-info {
+      flex: 1;
+      min-width: 0;
+    }
+
+    .vi-title {
+      font-size: 0.75rem;
+      color: var(--text);
+      white-space: nowrap;
+      overflow: hidden;
+      text-overflow: ellipsis;
+      line-height: 1.3;
+      margin-bottom: 3px;
+    }
+    .video-item.done .vi-title { color: var(--muted); }
+
+    .vi-meta {
+      font-size: 0.65rem;
+      color: var(--muted);
+    }
+
+    .vi-delete {
+      background: none;
+      border: none;
+      color: var(--muted);
+      cursor: pointer;
+      font-size: 1rem;
+      padding: 2px 4px;
+      border-radius: 3px;
+      opacity: 0;
+      transition: opacity 0.12s, color 0.12s;
+      flex-shrink: 0;
+    }
+    .video-item:hover .vi-delete { opacity: 1; }
+    .vi-delete:hover { color: var(--red); }
+
+    /* ── Main panel ── */
+    .main {
+      flex: 1;
+      overflow-y: auto;
+      padding: 28px 32px 60px;
+    }
+
+    .main::-webkit-scrollbar { width: 4px; }
+    .main::-webkit-scrollbar-track { background: transparent; }
+    .main::-webkit-scrollbar-thumb { background: var(--border); border-radius: 4px; }
+
+    .empty-state {
+      height: 100%;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+      gap: 12px;
+      text-align: center;
+    }
+    .empty-state .big-icon { font-size: 3rem; opacity: 0.15; }
+    .empty-state h2 {
+      font-family: 'Fraunces', serif;
+      font-style: italic;
+      font-weight: 300;
+      font-size: 1.3rem;
+      color: var(--muted);
+    }
+    .empty-state p { font-size: 0.75rem; color: var(--muted); }
+
+    /* ── Video card ── */
+    .video-card {
       background: var(--surface);
       border: 1px solid var(--border);
       border-radius: 10px;
       overflow: hidden;
-      display: none;
-      animation: fadeUp 0.35s ease both;
+      animation: fadeUp 0.3s ease both;
+      max-width: 720px;
     }
-    .card.visible { display: block; }
 
     @keyframes fadeUp {
-      from { opacity: 0; transform: translateY(16px); }
+      from { opacity: 0; transform: translateY(12px); }
       to   { opacity: 1; transform: translateY(0); }
     }
 
-    .video-title-bar {
-      padding: 16px 20px;
+    .vc-titlebar {
+      padding: 14px 18px;
       border-bottom: 1px solid var(--border);
       display: flex;
       align-items: center;
-      gap: 12px;
+      gap: 10px;
     }
 
     .yt-badge {
       background: var(--red);
       color: #fff;
-      font-size: 0.65rem;
+      font-size: 0.62rem;
       font-weight: 500;
       letter-spacing: 0.08em;
-      padding: 3px 8px;
+      padding: 3px 7px;
       border-radius: 4px;
       white-space: nowrap;
       flex-shrink: 0;
     }
 
-    .video-title {
+    .vc-title {
       font-family: 'Fraunces', serif;
       font-style: italic;
       font-weight: 300;
@@ -163,23 +365,21 @@
       flex: 1;
     }
 
-    .completed-badge {
+    .vc-done-badge {
       display: none;
       align-items: center;
-      gap: 6px;
-      background: rgba(106, 242, 176, 0.12);
+      gap: 5px;
+      background: rgba(106,242,176,0.12);
       border: 1px solid var(--accent2);
       color: var(--accent2);
-      font-size: 0.7rem;
-      letter-spacing: 0.08em;
-      padding: 4px 10px;
+      font-size: 0.68rem;
+      padding: 3px 10px;
       border-radius: 99px;
       white-space: nowrap;
       flex-shrink: 0;
-      animation: fadeUp 0.3s ease both;
     }
-    .completed-badge.show { display: flex; }
-    .completed-badge svg { width: 13px; height: 13px; }
+    .vc-done-badge.show { display: flex; }
+    .vc-done-badge svg { width: 12px; height: 12px; }
 
     .player-wrap {
       position: relative;
@@ -187,55 +387,52 @@
       padding-top: 56.25%;
       background: #000;
     }
-    #ytPlayer {
+    .player-wrap > div {
       position: absolute;
       inset: 0;
       width: 100%;
       height: 100%;
     }
 
+    /* Progress */
     .progress-section {
-      padding: 20px 20px 0;
+      padding: 18px 18px 0;
       border-top: 1px solid var(--border);
     }
 
     .progress-label {
-      font-size: 0.68rem;
+      font-size: 0.65rem;
       color: var(--muted);
       letter-spacing: 0.12em;
       text-transform: uppercase;
-      margin-bottom: 10px;
+      margin-bottom: 8px;
     }
 
     .time-display {
       display: flex;
       align-items: center;
-      gap: 16px;
-      margin-bottom: 14px;
+      gap: 12px;
+      margin-bottom: 12px;
     }
 
     .time-now {
-      font-size: 2rem;
+      font-size: 1.8rem;
       font-family: 'Fraunces', serif;
       color: var(--accent);
       letter-spacing: -1px;
-      min-width: 90px;
+      min-width: 80px;
     }
 
-    .time-sep { color: var(--muted); font-size: 1.2rem; }
-
-    .time-total {
-      font-size: 1rem;
-      color: var(--muted);
-    }
+    .time-sep { color: var(--muted); font-size: 1.1rem; }
+    .time-total { font-size: 0.9rem; color: var(--muted); }
 
     .progress-bar-track {
       width: 100%;
-      height: 6px;
+      height: 5px;
       background: var(--surface2);
       border-radius: 99px;
       overflow: hidden;
-      margin-bottom: 20px;
+      margin-bottom: 18px;
     }
 
     .progress-bar-fill {
@@ -247,37 +444,36 @@
     }
 
     .progress-pct {
-      font-size: 0.75rem;
+      font-size: 0.72rem;
       color: var(--muted);
       text-align: right;
-      margin-top: -16px;
-      margin-bottom: 16px;
+      margin-top: -14px;
+      margin-bottom: 14px;
     }
 
-    .notes-section {
-      padding: 0 20px 20px;
-    }
+    /* Notes */
+    .notes-section { padding: 0 18px 20px; }
 
     .notes-label {
-      font-size: 0.68rem;
+      font-size: 0.65rem;
       color: var(--muted);
       letter-spacing: 0.12em;
       text-transform: uppercase;
       margin-bottom: 10px;
       border-top: 1px solid var(--border);
-      padding-top: 18px;
+      padding-top: 16px;
     }
 
     .notes-area {
       width: 100%;
-      min-height: 110px;
+      min-height: 100px;
       background: var(--surface2);
       border: 1px solid var(--border);
       color: var(--text);
       font-family: 'DM Mono', monospace;
-      font-size: 0.83rem;
+      font-size: 0.82rem;
       line-height: 1.65;
-      padding: 14px 16px;
+      padding: 12px 14px;
       border-radius: 6px;
       resize: vertical;
       outline: none;
@@ -290,13 +486,10 @@
       display: flex;
       justify-content: space-between;
       align-items: center;
-      margin-top: 10px;
+      margin-top: 9px;
     }
 
-    .timestamp-hint {
-      font-size: 0.72rem;
-      color: var(--muted);
-    }
+    .timestamp-hint { font-size: 0.7rem; color: var(--muted); }
     .timestamp-hint span {
       color: var(--accent2);
       cursor: pointer;
@@ -310,8 +503,8 @@
       border: 1px solid var(--accent2);
       color: var(--accent2);
       font-family: 'DM Mono', monospace;
-      font-size: 0.75rem;
-      padding: 7px 16px;
+      font-size: 0.73rem;
+      padding: 6px 14px;
       border-radius: 5px;
       cursor: pointer;
       transition: background 0.15s, color 0.15s;
@@ -319,34 +512,29 @@
     .btn-save:hover { background: var(--accent2); color: #0e0e10; }
 
     .save-confirm {
-      font-size: 0.72rem;
+      font-size: 0.7rem;
       color: var(--accent2);
       opacity: 0;
       transition: opacity 0.3s;
     }
     .save-confirm.show { opacity: 1; }
 
-    .saved-notes {
-      margin-top: 14px;
-      display: flex;
-      flex-direction: column;
-      gap: 8px;
-    }
+    .saved-notes { margin-top: 12px; display: flex; flex-direction: column; gap: 7px; }
 
     .saved-note-item {
       background: var(--surface2);
       border: 1px solid var(--border);
       border-radius: 6px;
-      padding: 10px 14px;
+      padding: 9px 13px;
       display: flex;
-      gap: 12px;
+      gap: 10px;
       align-items: flex-start;
       animation: fadeUp 0.2s ease both;
     }
 
     .note-ts {
       color: var(--accent);
-      font-size: 0.72rem;
+      font-size: 0.7rem;
       white-space: nowrap;
       flex-shrink: 0;
       padding-top: 2px;
@@ -356,12 +544,7 @@
     }
     .note-ts:hover { opacity: 0.7; }
 
-    .note-text {
-      font-size: 0.8rem;
-      color: var(--text);
-      line-height: 1.5;
-      flex: 1;
-    }
+    .note-text { font-size: 0.78rem; color: var(--text); line-height: 1.5; flex: 1; }
 
     .note-delete {
       background: none;
@@ -376,106 +559,95 @@
     }
     .note-delete:hover { color: var(--red); }
 
-    .storage-notice {
-      font-size: 0.68rem;
-      color: var(--muted);
-      text-align: center;
-      margin-top: 20px;
-      letter-spacing: 0.05em;
+    /* Responsive collapse for small screens */
+    @media (max-width: 640px) {
+      .sidebar { width: 220px; }
+      .main { padding: 16px 16px 48px; }
     }
   </style>
 </head>
 <body>
-  <div class="wrapper">
-    <header>
-      <h1>YT Tracker</h1>
-      <span>learning log</span>
-    </header>
 
-    <div class="input-row">
-      <input type="text" id="urlInput" placeholder="Paste a YouTube URL…" autocomplete="off" />
-      <button class="btn-load" id="loadBtn">Load</button>
-    </div>
-    <div class="error-msg" id="errorMsg">⚠ Couldn't find a valid YouTube video ID in that URL.</div>
-
-    <div class="card" id="card">
-      <div class="video-title-bar">
-        <span class="yt-badge">YT</span>
-        <div class="video-title" id="videoTitle">Loading title…</div>
-        <div class="completed-badge" id="completedBadge">
-          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round">
-            <polyline points="20 6 9 17 4 12"/>
-          </svg>
-          completed
-        </div>
-      </div>
-
-      <div class="player-wrap">
-        <div id="ytPlayer"></div>
-      </div>
-
-      <div class="progress-section">
-        <div class="progress-label">current position</div>
-        <div class="time-display">
-          <div class="time-now" id="timeNow">0:00</div>
-          <div class="time-sep">/</div>
-          <div class="time-total" id="timeTotal">—</div>
-        </div>
-        <div class="progress-bar-track">
-          <div class="progress-bar-fill" id="progressFill"></div>
-        </div>
-        <div class="progress-pct" id="progressPct">0%</div>
-      </div>
-
-      <div class="notes-section">
-        <div class="notes-label">notes</div>
-        <textarea class="notes-area" id="notesArea" placeholder="Jot something down… Ctrl+Enter to save. Click a saved timestamp to jump back."></textarea>
-        <div class="notes-footer">
-          <div class="timestamp-hint">
-            <span id="insertTsBtn">Insert timestamp</span> into note
-          </div>
-          <div style="display:flex;align-items:center;gap:12px;">
-            <span class="save-confirm" id="saveConfirm">saved ✓</span>
-            <button class="btn-save" id="saveNoteBtn">Save Note</button>
-          </div>
-        </div>
-        <div class="saved-notes" id="savedNotes"></div>
-      </div>
-    </div>
-
-    <div class="storage-notice" id="storageNotice" style="display:none;">
-      💾 notes save automatically to this browser — they'll be here next time
+  <!-- Top bar -->
+  <div class="topbar">
+    <h1>YT Tracker</h1>
+    <span class="topbar-sub">learning log</span>
+    <div class="add-row">
+      <input type="text" id="urlInput" placeholder="Paste a YouTube URL and press Add…" autocomplete="off"/>
+      <button class="btn-add" id="addBtn">Add</button>
     </div>
   </div>
 
+  <div class="layout">
+
+    <!-- Sidebar: video library -->
+    <div class="sidebar">
+      <div class="sidebar-header">
+        <span>your videos</span>
+        <span class="video-count" id="videoCount">0</span>
+      </div>
+      <div class="sidebar-empty" id="sidebarEmpty">
+        <div class="empty-icon">▶</div>
+        <p>Paste a YouTube link above to start tracking your learning.</p>
+      </div>
+      <div class="video-list" id="videoList" style="display:none;"></div>
+    </div>
+
+    <!-- Main panel -->
+    <div class="main" id="mainPanel">
+      <div class="empty-state" id="emptyState">
+        <div class="big-icon">📺</div>
+        <h2>nothing selected yet</h2>
+        <p>Add a video from the top bar, then click it to open.</p>
+      </div>
+
+      <!-- Video card (hidden until a video is selected) -->
+      <div class="video-card" id="videoCard" style="display:none;"></div>
+    </div>
+
+  </div>
+
+  <!-- Error toast -->
+  <div class="error-toast" id="errorToast">⚠ Couldn't find a valid YouTube video ID.</div>
+
   <script src="https://www.youtube.com/iframe_api"></script>
   <script>
+    // ─────────────────────────────────────────────────────────
+    // State
+    // ─────────────────────────────────────────────────────────
+    let videos = [];          // [{id, title, addedAt, done}]
+    let activeVideoId = null;
+    let currentNotes = [];
     let player = null;
     let pollInterval = null;
-    let currentVideoId = null;
-    let savedNotes = [];
     let ytApiReady = false;
-    let pendingVideoId = null;
+    let pendingBuild = null;
 
-    // ── localStorage ─────────────────────────────────────────
-    function storageKey(id)   { return 'yt-tracker-notes-' + id; }
-    function completedKey(id) { return 'yt-tracker-done-' + id; }
+    const VIDEOS_KEY = 'yt-tracker-videos-v2';
+    function notesKey(id) { return 'yt-tracker-notes-' + id; }
 
+    // ─────────────────────────────────────────────────────────
+    // Persistence
+    // ─────────────────────────────────────────────────────────
+    function saveVideos() {
+      try { localStorage.setItem(VIDEOS_KEY, JSON.stringify(videos)); } catch(e) {}
+    }
+    function loadVideos() {
+      try { return JSON.parse(localStorage.getItem(VIDEOS_KEY) || '[]'); } catch(e) { return []; }
+    }
+    function saveNotes(id, notes) {
+      try { localStorage.setItem(notesKey(id), JSON.stringify(notes)); } catch(e) {}
+    }
     function loadNotes(id) {
-      try { return JSON.parse(localStorage.getItem(storageKey(id)) || '[]'); }
-      catch(e) { return []; }
+      try { return JSON.parse(localStorage.getItem(notesKey(id)) || '[]'); } catch(e) { return []; }
     }
-    function persistNotes(id, notes) {
-      try { localStorage.setItem(storageKey(id), JSON.stringify(notes)); } catch(e) {}
-    }
-    function isCompleted(id) {
-      return localStorage.getItem(completedKey(id)) === 'true';
-    }
-    function markDone(id) {
-      try { localStorage.setItem(completedKey(id), 'true'); } catch(e) {}
+    function removeNotes(id) {
+      try { localStorage.removeItem(notesKey(id)); } catch(e) {}
     }
 
-    // ── Helpers ──────────────────────────────────────────────
+    // ─────────────────────────────────────────────────────────
+    // Helpers
+    // ─────────────────────────────────────────────────────────
     function extractVideoId(url) {
       const patterns = [
         /[?&]v=([a-zA-Z0-9_-]{11})/,
@@ -483,27 +655,22 @@
         /\/embed\/([a-zA-Z0-9_-]{11})/,
         /\/shorts\/([a-zA-Z0-9_-]{11})/,
       ];
-      for (const re of patterns) {
-        const m = url.match(re);
-        if (m) return m[1];
-      }
+      for (const re of patterns) { const m = url.match(re); if (m) return m[1]; }
       return null;
     }
 
     function formatTime(sec) {
       if (!sec || isNaN(sec) || sec < 0) return '0:00';
       sec = Math.floor(sec);
-      const h = Math.floor(sec / 3600);
-      const m = Math.floor((sec % 3600) / 60);
-      const s = sec % 60;
-      if (h > 0) return h + ':' + String(m).padStart(2,'0') + ':' + String(s).padStart(2,'0');
-      return m + ':' + String(s).padStart(2,'0');
+      const h = Math.floor(sec / 3600), m = Math.floor((sec % 3600) / 60), s = sec % 60;
+      if (h > 0) return h + ':' + pad(m) + ':' + pad(s);
+      return m + ':' + pad(s);
     }
+    function pad(n) { return String(n).padStart(2, '0'); }
 
     function parseTimestamp(ts) {
-      const parts = ts.split(':').map(Number);
-      if (parts.length === 3) return parts[0]*3600 + parts[1]*60 + parts[2];
-      return parts[0]*60 + (parts[1] || 0);
+      const p = ts.split(':').map(Number);
+      return p.length === 3 ? p[0]*3600 + p[1]*60 + p[2] : p[0]*60 + (p[1]||0);
     }
 
     function escapeHtml(s) {
@@ -511,106 +678,245 @@
     }
 
     function getCurrentTime() {
-      try {
-        if (player && typeof player.getCurrentTime === 'function') return player.getCurrentTime();
-      } catch(e) {}
+      try { if (player && typeof player.getCurrentTime === 'function') return player.getCurrentTime(); } catch(e) {}
       return 0;
     }
 
-    // ── Load video ───────────────────────────────────────────
-    document.getElementById('loadBtn').addEventListener('click', loadVideo);
-    document.getElementById('urlInput').addEventListener('keydown', e => {
-      if (e.key === 'Enter') loadVideo();
-    });
+    function showToast(msg) {
+      const t = document.getElementById('errorToast');
+      t.textContent = msg;
+      t.classList.add('show');
+      setTimeout(() => t.classList.remove('show'), 2800);
+    }
 
-    function loadVideo() {
-      const url = document.getElementById('urlInput').value.trim();
-      const errorEl = document.getElementById('errorMsg');
-      const videoId = extractVideoId(url);
+    function thumbUrl(id) { return 'https://img.youtube.com/vi/' + id + '/mqdefault.jpg'; }
 
-      if (!videoId) { errorEl.style.display = 'block'; return; }
-      errorEl.style.display = 'none';
-      currentVideoId = videoId;
+    // ─────────────────────────────────────────────────────────
+    // Boot
+    // ─────────────────────────────────────────────────────────
+    videos = loadVideos();
+    renderSidebar();
 
-      // Reset UI
-      document.getElementById('completedBadge').classList.remove('show');
-      document.getElementById('savedNotes').innerHTML = '';
-      document.getElementById('videoTitle').textContent = 'Loading title…';
-      document.getElementById('timeNow').textContent = '0:00';
-      document.getElementById('timeTotal').textContent = '—';
-      document.getElementById('progressFill').style.width = '0%';
-      document.getElementById('progressPct').textContent = '0%';
-      document.getElementById('card').classList.add('visible');
-      document.getElementById('storageNotice').style.display = 'block';
+    // ─────────────────────────────────────────────────────────
+    // Add video
+    // ─────────────────────────────────────────────────────────
+    document.getElementById('addBtn').addEventListener('click', addVideo);
+    document.getElementById('urlInput').addEventListener('keydown', e => { if (e.key === 'Enter') addVideo(); });
 
-      // Restore saved data for this video
-      savedNotes = loadNotes(videoId);
-      savedNotes.forEach(n => renderNote(n, false));
-      if (isCompleted(videoId)) {
-        document.getElementById('completedBadge').classList.add('show');
+    function addVideo() {
+      const input = document.getElementById('urlInput');
+      const url = input.value.trim();
+      const id = extractVideoId(url);
+      if (!id) { showToast('⚠ Couldn\'t find a valid YouTube video ID.'); return; }
+
+      // Don't add duplicates
+      if (videos.find(v => v.id === id)) {
+        input.value = '';
+        openVideo(id);
+        return;
       }
 
-      // Fetch title
-      fetch('https://www.youtube-nocookie.com/oembed?url=https://www.youtube.com/watch?v=' + videoId + '&format=json')
-        .then(r => r.json())
-        .then(d => { document.getElementById('videoTitle').textContent = d.title || 'YouTube Video'; })
-        .catch(() => { document.getElementById('videoTitle').textContent = 'YouTube Video'; });
+      const entry = { id, title: 'Loading…', addedAt: Date.now(), done: false };
+      videos.unshift(entry); // newest first
+      saveVideos();
+      input.value = '';
 
-      // Init player
-      if (ytApiReady) {
-        buildPlayer(videoId);
-      } else {
-        pendingVideoId = videoId;
+      // Fetch title async
+      fetch('https://www.youtube-nocookie.com/oembed?url=https://www.youtube.com/watch?v=' + id + '&format=json')
+        .then(r => r.json())
+        .then(d => {
+          const v = videos.find(v => v.id === id);
+          if (v) { v.title = d.title || 'YouTube Video'; saveVideos(); renderSidebar(); }
+        })
+        .catch(() => {
+          const v = videos.find(v => v.id === id);
+          if (v) { v.title = 'YouTube Video'; saveVideos(); renderSidebar(); }
+        });
+
+      renderSidebar();
+      openVideo(id);
+    }
+
+    // ─────────────────────────────────────────────────────────
+    // Sidebar rendering
+    // ─────────────────────────────────────────────────────────
+    function renderSidebar() {
+      const list = document.getElementById('videoList');
+      const empty = document.getElementById('sidebarEmpty');
+      const count = document.getElementById('videoCount');
+      count.textContent = videos.length;
+
+      if (videos.length === 0) {
+        empty.style.display = 'flex';
+        list.style.display = 'none';
+        return;
+      }
+      empty.style.display = 'none';
+      list.style.display = 'block';
+      list.innerHTML = '';
+
+      videos.forEach(v => {
+        const item = document.createElement('div');
+        item.className = 'video-item' + (v.id === activeVideoId ? ' active' : '') + (v.done ? ' done' : '');
+        item.dataset.id = v.id;
+
+        item.innerHTML =
+          '<div class="vi-check' + (v.done ? ' checked' : '') + '" data-id="' + v.id + '" title="Mark complete"></div>' +
+          '<img class="vi-thumb" src="' + thumbUrl(v.id) + '" alt="" loading="lazy"/>' +
+          '<div class="vi-info">' +
+            '<div class="vi-title">' + escapeHtml(v.title) + '</div>' +
+            '<div class="vi-meta">' + (v.done ? '✓ done' : 'in progress') + '</div>' +
+          '</div>' +
+          '<button class="vi-delete" data-id="' + v.id + '" title="Remove">×</button>';
+
+        // Click row → open video
+        item.addEventListener('click', function(e) {
+          if (e.target.classList.contains('vi-check') || e.target.classList.contains('vi-delete')) return;
+          openVideo(v.id);
+        });
+
+        // Checkbox toggle
+        item.querySelector('.vi-check').addEventListener('click', function(e) {
+          e.stopPropagation();
+          toggleDone(v.id);
+        });
+
+        // Delete
+        item.querySelector('.vi-delete').addEventListener('click', function(e) {
+          e.stopPropagation();
+          deleteVideo(v.id);
+        });
+
+        list.appendChild(item);
+      });
+    }
+
+    function toggleDone(id) {
+      const v = videos.find(v => v.id === id);
+      if (!v) return;
+      v.done = !v.done;
+      saveVideos();
+      renderSidebar();
+      // If this is the active video, update its badge too
+      if (id === activeVideoId) {
+        const badge = document.getElementById('vcDoneBadge');
+        if (badge) badge.classList.toggle('show', v.done);
       }
     }
 
-    // ── YouTube IFrame API ───────────────────────────────────
+    function deleteVideo(id) {
+      videos = videos.filter(v => v.id !== id);
+      removeNotes(id);
+      saveVideos();
+      if (activeVideoId === id) {
+        activeVideoId = null;
+        stopPolling();
+        if (player && typeof player.destroy === 'function') { try { player.destroy(); } catch(e) {} player = null; }
+        document.getElementById('videoCard').style.display = 'none';
+        document.getElementById('emptyState').style.display = 'flex';
+      }
+      renderSidebar();
+    }
+
+    // ─────────────────────────────────────────────────────────
+    // Open / render video in main panel
+    // ─────────────────────────────────────────────────────────
+    function openVideo(id) {
+      activeVideoId = id;
+      const v = videos.find(v => v.id === id);
+      currentNotes = loadNotes(id);
+
+      document.getElementById('emptyState').style.display = 'none';
+      const card = document.getElementById('videoCard');
+      card.style.display = 'block';
+
+      card.innerHTML =
+        '<div class="vc-titlebar">' +
+          '<span class="yt-badge">YT</span>' +
+          '<div class="vc-title" id="vcTitle">' + escapeHtml(v ? v.title : 'Loading…') + '</div>' +
+          '<div class="vc-done-badge' + (v && v.done ? ' show' : '') + '" id="vcDoneBadge">' +
+            '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><polyline points="20 6 9 17 4 12"/></svg>' +
+            'completed' +
+          '</div>' +
+        '</div>' +
+        '<div class="player-wrap"><div id="ytPlayerTarget"></div></div>' +
+        '<div class="progress-section">' +
+          '<div class="progress-label">current position</div>' +
+          '<div class="time-display">' +
+            '<div class="time-now" id="timeNow">0:00</div>' +
+            '<div class="time-sep">/</div>' +
+            '<div class="time-total" id="timeTotal">—</div>' +
+          '</div>' +
+          '<div class="progress-bar-track"><div class="progress-bar-fill" id="progressFill"></div></div>' +
+          '<div class="progress-pct" id="progressPct">0%</div>' +
+        '</div>' +
+        '<div class="notes-section">' +
+          '<div class="notes-label">notes</div>' +
+          '<textarea class="notes-area" id="notesArea" placeholder="Jot something down… Ctrl+Enter to save. Click a saved timestamp to jump back."></textarea>' +
+          '<div class="notes-footer">' +
+            '<div class="timestamp-hint"><span id="insertTsBtn">Insert timestamp</span> into note</div>' +
+            '<div style="display:flex;align-items:center;gap:10px;">' +
+              '<span class="save-confirm" id="saveConfirm">saved ✓</span>' +
+              '<button class="btn-save" id="saveNoteBtn">Save Note</button>' +
+            '</div>' +
+          '</div>' +
+          '<div class="saved-notes" id="savedNotes"></div>' +
+        '</div>';
+
+      // Render existing notes
+      currentNotes.forEach(n => renderNote(n, false));
+
+      // Wire up notes buttons
+      document.getElementById('saveNoteBtn').addEventListener('click', saveNote);
+      document.getElementById('notesArea').addEventListener('keydown', e => {
+        if ((e.ctrlKey || e.metaKey) && e.key === 'Enter') { e.preventDefault(); saveNote(); }
+      });
+      document.getElementById('insertTsBtn').addEventListener('click', insertTimestamp);
+
+      // Build player
+      if (ytApiReady) {
+        buildPlayer(id);
+      } else {
+        pendingBuild = id;
+      }
+
+      renderSidebar(); // refresh active state
+    }
+
+    // ─────────────────────────────────────────────────────────
+    // YouTube IFrame API
+    // ─────────────────────────────────────────────────────────
     window.onYouTubeIframeAPIReady = function() {
       ytApiReady = true;
-      if (pendingVideoId) {
-        buildPlayer(pendingVideoId);
-        pendingVideoId = null;
-      }
+      if (pendingBuild) { buildPlayer(pendingBuild); pendingBuild = null; }
     };
 
     function buildPlayer(videoId) {
       stopPolling();
+      if (player && typeof player.destroy === 'function') { try { player.destroy(); } catch(e) {} player = null; }
 
-      // Destroy old player and recreate target element
-      if (player && typeof player.destroy === 'function') {
-        try { player.destroy(); } catch(e) {}
-        player = null;
-      }
+      const target = document.getElementById('ytPlayerTarget');
+      if (!target) return;
 
-      // Always recreate the div so YT has a clean target
-      const wrap = document.querySelector('.player-wrap');
-      const old = document.getElementById('ytPlayer');
-      if (old) old.remove();
-      const div = document.createElement('div');
-      div.id = 'ytPlayer';
-      div.style.cssText = 'position:absolute;inset:0;width:100%;height:100%;';
-      wrap.appendChild(div);
-
-      player = new YT.Player('ytPlayer', {
+      player = new YT.Player('ytPlayerTarget', {
         videoId: videoId,
         playerVars: { rel: 0, modestbranding: 1, enablejsapi: 1 },
         events: {
-          onReady: function() {
-            updateProgress();
-            startPolling();
-          },
+          onReady: function() { updateProgress(); startPolling(); },
           onStateChange: function(e) {
-            if (e.data === YT.PlayerState.PLAYING) {
-              startPolling();
-            } else if (e.data === YT.PlayerState.PAUSED) {
-              stopPolling();
-              updateProgress();
-            } else if (e.data === YT.PlayerState.ENDED) {
-              stopPolling();
-              updateProgress();
-              // Mark completed
-              markDone(currentVideoId);
-              document.getElementById('completedBadge').classList.add('show');
+            if (e.data === YT.PlayerState.PLAYING) { startPolling(); }
+            else if (e.data === YT.PlayerState.PAUSED) { stopPolling(); updateProgress(); }
+            else if (e.data === YT.PlayerState.ENDED) {
+              stopPolling(); updateProgress();
+              // Auto-mark done
+              const v = videos.find(v => v.id === videoId);
+              if (v && !v.done) {
+                v.done = true;
+                saveVideos();
+                renderSidebar();
+              }
+              const badge = document.getElementById('vcDoneBadge');
+              if (badge) badge.classList.add('show');
             }
           }
         }
@@ -621,57 +927,55 @@
       stopPolling();
       pollInterval = setInterval(updateProgress, 500);
     }
-
     function stopPolling() {
       if (pollInterval) { clearInterval(pollInterval); pollInterval = null; }
     }
-
     function updateProgress() {
       try {
         if (!player || typeof player.getCurrentTime !== 'function') return;
-        const cur = player.getCurrentTime();
-        const dur = player.getDuration();
-        document.getElementById('timeNow').textContent = formatTime(cur);
-        if (dur > 0) document.getElementById('timeTotal').textContent = formatTime(dur);
-        const pct = dur > 0 ? Math.round((cur / dur) * 100) : 0;
-        document.getElementById('progressFill').style.width = pct + '%';
-        document.getElementById('progressPct').textContent = pct + '%';
+        const cur = player.getCurrentTime(), dur = player.getDuration();
+        const tn = document.getElementById('timeNow'), tt = document.getElementById('timeTotal');
+        const pf = document.getElementById('progressFill'), pp = document.getElementById('progressPct');
+        if (tn) tn.textContent = formatTime(cur);
+        if (tt && dur > 0) tt.textContent = formatTime(dur);
+        const pct = dur > 0 ? Math.round((cur/dur)*100) : 0;
+        if (pf) pf.style.width = pct + '%';
+        if (pp) pp.textContent = pct + '%';
       } catch(e) {}
     }
 
-    // ── Notes ────────────────────────────────────────────────
-    document.getElementById('insertTsBtn').addEventListener('click', () => {
+    // ─────────────────────────────────────────────────────────
+    // Notes
+    // ─────────────────────────────────────────────────────────
+    function insertTimestamp() {
       const ts = formatTime(getCurrentTime());
       const ta = document.getElementById('notesArea');
+      if (!ta) return;
       const pos = ta.selectionStart;
       ta.value = ta.value.substring(0, pos) + '[' + ts + '] ' + ta.value.substring(pos);
       ta.focus();
       ta.setSelectionRange(pos + ts.length + 3, pos + ts.length + 3);
-    });
-
-    document.getElementById('saveNoteBtn').addEventListener('click', saveNote);
-    document.getElementById('notesArea').addEventListener('keydown', e => {
-      if ((e.ctrlKey || e.metaKey) && e.key === 'Enter') { e.preventDefault(); saveNote(); }
-    });
+    }
 
     function saveNote() {
       const ta = document.getElementById('notesArea');
+      if (!ta) return;
       const text = ta.value.trim();
-      if (!text || !currentVideoId) return;
+      if (!text || !activeVideoId) return;
 
-      const note = { ts: formatTime(getCurrentTime()), text: text, id: Date.now() };
-      savedNotes.push(note);
-      persistNotes(currentVideoId, savedNotes);
+      const note = { ts: formatTime(getCurrentTime()), text, id: Date.now() };
+      currentNotes.push(note);
+      saveNotes(activeVideoId, currentNotes);
       renderNote(note, true);
       ta.value = '';
 
-      const confirmEl = document.getElementById('saveConfirm');
-      confirmEl.classList.add('show');
-      setTimeout(() => confirmEl.classList.remove('show'), 1800);
+      const c = document.getElementById('saveConfirm');
+      if (c) { c.classList.add('show'); setTimeout(() => c.classList.remove('show'), 1800); }
     }
 
     function renderNote(note, prepend) {
       const container = document.getElementById('savedNotes');
+      if (!container) return;
       const el = document.createElement('div');
       el.className = 'saved-note-item';
       el.dataset.id = note.id;
@@ -681,22 +985,15 @@
         '<button class="note-delete" title="Delete">×</button>';
 
       el.querySelector('.note-ts').addEventListener('click', () => {
-        try {
-          if (player && typeof player.seekTo === 'function') {
-            player.seekTo(parseTimestamp(note.ts), true);
-            player.playVideo();
-          }
-        } catch(e) {}
+        try { if (player && typeof player.seekTo === 'function') { player.seekTo(parseTimestamp(note.ts), true); player.playVideo(); } } catch(e) {}
       });
-
       el.querySelector('.note-delete').addEventListener('click', () => {
-        savedNotes = savedNotes.filter(n => n.id !== note.id);
-        persistNotes(currentVideoId, savedNotes);
+        currentNotes = currentNotes.filter(n => n.id !== note.id);
+        saveNotes(activeVideoId, currentNotes);
         el.remove();
       });
 
-      if (prepend) container.prepend(el);
-      else container.appendChild(el);
+      if (prepend) container.prepend(el); else container.appendChild(el);
     }
   </script>
 </body>
