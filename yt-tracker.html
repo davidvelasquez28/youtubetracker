@@ -1,0 +1,598 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title>YT Learning Tracker</title>
+  <link href="https://fonts.googleapis.com/css2?family=DM+Mono:wght@400;500&family=Fraunces:ital,wght@0,300;0,700;1,300&display=swap" rel="stylesheet"/>
+  <style>
+    *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+    :root {
+      --bg: #0e0e10;
+      --surface: #17171a;
+      --surface2: #1f1f24;
+      --border: #2e2e36;
+      --accent: #d4f264;
+      --accent2: #6af2b0;
+      --text: #e8e8ec;
+      --muted: #6b6b7a;
+      --red: #ff5c5c;
+    }
+
+    body {
+      background: var(--bg);
+      color: var(--text);
+      font-family: 'DM Mono', monospace;
+      min-height: 100vh;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      padding: 48px 24px 80px;
+    }
+
+    /* Subtle grid background */
+    body::before {
+      content: '';
+      position: fixed;
+      inset: 0;
+      background-image:
+        linear-gradient(rgba(212,242,100,0.03) 1px, transparent 1px),
+        linear-gradient(90deg, rgba(212,242,100,0.03) 1px, transparent 1px);
+      background-size: 40px 40px;
+      pointer-events: none;
+      z-index: 0;
+    }
+
+    .wrapper {
+      width: 100%;
+      max-width: 680px;
+      position: relative;
+      z-index: 1;
+    }
+
+    header {
+      margin-bottom: 48px;
+      display: flex;
+      align-items: baseline;
+      gap: 12px;
+    }
+
+    header h1 {
+      font-family: 'Fraunces', serif;
+      font-weight: 700;
+      font-size: 2rem;
+      color: var(--accent);
+      letter-spacing: -0.5px;
+    }
+
+    header span {
+      font-size: 0.75rem;
+      color: var(--muted);
+      letter-spacing: 0.12em;
+      text-transform: uppercase;
+    }
+
+    /* Input row */
+    .input-row {
+      display: flex;
+      gap: 10px;
+      margin-bottom: 28px;
+    }
+
+    .input-row input {
+      flex: 1;
+      background: var(--surface);
+      border: 1px solid var(--border);
+      color: var(--text);
+      font-family: 'DM Mono', monospace;
+      font-size: 0.82rem;
+      padding: 12px 16px;
+      border-radius: 6px;
+      outline: none;
+      transition: border-color 0.2s;
+    }
+    .input-row input::placeholder { color: var(--muted); }
+    .input-row input:focus { border-color: var(--accent); }
+
+    .btn-load {
+      background: var(--accent);
+      color: #0e0e10;
+      border: none;
+      font-family: 'DM Mono', monospace;
+      font-size: 0.82rem;
+      font-weight: 500;
+      padding: 12px 20px;
+      border-radius: 6px;
+      cursor: pointer;
+      white-space: nowrap;
+      transition: opacity 0.15s, transform 0.1s;
+    }
+    .btn-load:hover { opacity: 0.85; }
+    .btn-load:active { transform: scale(0.97); }
+
+    /* Error */
+    .error-msg {
+      font-size: 0.78rem;
+      color: var(--red);
+      margin-bottom: 16px;
+      display: none;
+    }
+
+    /* Card */
+    .card {
+      background: var(--surface);
+      border: 1px solid var(--border);
+      border-radius: 10px;
+      overflow: hidden;
+      display: none;
+      animation: fadeUp 0.35s ease both;
+    }
+    .card.visible { display: block; }
+
+    @keyframes fadeUp {
+      from { opacity: 0; transform: translateY(16px); }
+      to   { opacity: 1; transform: translateY(0); }
+    }
+
+    /* Video title bar */
+    .video-title-bar {
+      padding: 16px 20px;
+      border-bottom: 1px solid var(--border);
+      display: flex;
+      align-items: center;
+      gap: 12px;
+    }
+
+    .yt-badge {
+      background: var(--red);
+      color: #fff;
+      font-size: 0.65rem;
+      font-weight: 500;
+      letter-spacing: 0.08em;
+      padding: 3px 8px;
+      border-radius: 4px;
+      white-space: nowrap;
+      flex-shrink: 0;
+    }
+
+    .video-title {
+      font-family: 'Fraunces', serif;
+      font-style: italic;
+      font-weight: 300;
+      font-size: 1rem;
+      color: var(--text);
+      white-space: nowrap;
+      overflow: hidden;
+      text-overflow: ellipsis;
+    }
+
+    /* Player embed */
+    .player-wrap {
+      position: relative;
+      width: 100%;
+      padding-top: 56.25%;
+      background: #000;
+    }
+    .player-wrap iframe {
+      position: absolute;
+      inset: 0;
+      width: 100%;
+      height: 100%;
+      border: none;
+    }
+
+    /* Progress section */
+    .progress-section {
+      padding: 20px 20px 0;
+      border-top: 1px solid var(--border);
+    }
+
+    .progress-label {
+      font-size: 0.68rem;
+      color: var(--muted);
+      letter-spacing: 0.12em;
+      text-transform: uppercase;
+      margin-bottom: 10px;
+    }
+
+    .time-display {
+      display: flex;
+      align-items: center;
+      gap: 16px;
+      margin-bottom: 14px;
+    }
+
+    .time-now {
+      font-size: 2rem;
+      font-family: 'Fraunces', serif;
+      color: var(--accent);
+      letter-spacing: -1px;
+      min-width: 90px;
+    }
+
+    .time-sep { color: var(--muted); font-size: 1.2rem; }
+
+    .time-total {
+      font-size: 1rem;
+      color: var(--muted);
+    }
+
+    /* Progress bar */
+    .progress-bar-track {
+      width: 100%;
+      height: 6px;
+      background: var(--surface2);
+      border-radius: 99px;
+      overflow: hidden;
+      margin-bottom: 20px;
+    }
+
+    .progress-bar-fill {
+      height: 100%;
+      background: linear-gradient(90deg, var(--accent), var(--accent2));
+      border-radius: 99px;
+      width: 0%;
+      transition: width 0.5s linear;
+    }
+
+    .progress-pct {
+      font-size: 0.75rem;
+      color: var(--muted);
+      text-align: right;
+      margin-top: -16px;
+      margin-bottom: 16px;
+    }
+
+    /* Notes */
+    .notes-section {
+      padding: 0 20px 20px;
+    }
+
+    .notes-label {
+      font-size: 0.68rem;
+      color: var(--muted);
+      letter-spacing: 0.12em;
+      text-transform: uppercase;
+      margin-bottom: 10px;
+      border-top: 1px solid var(--border);
+      padding-top: 18px;
+    }
+
+    .notes-area {
+      width: 100%;
+      min-height: 110px;
+      background: var(--surface2);
+      border: 1px solid var(--border);
+      color: var(--text);
+      font-family: 'DM Mono', monospace;
+      font-size: 0.83rem;
+      line-height: 1.65;
+      padding: 14px 16px;
+      border-radius: 6px;
+      resize: vertical;
+      outline: none;
+      transition: border-color 0.2s;
+    }
+    .notes-area::placeholder { color: var(--muted); }
+    .notes-area:focus { border-color: var(--accent2); }
+
+    .notes-footer {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      margin-top: 10px;
+    }
+
+    .timestamp-hint {
+      font-size: 0.72rem;
+      color: var(--muted);
+    }
+    .timestamp-hint span {
+      color: var(--accent2);
+      cursor: pointer;
+      text-decoration: underline;
+      text-underline-offset: 3px;
+    }
+    .timestamp-hint span:hover { opacity: 0.7; }
+
+    .btn-save {
+      background: transparent;
+      border: 1px solid var(--accent2);
+      color: var(--accent2);
+      font-family: 'DM Mono', monospace;
+      font-size: 0.75rem;
+      padding: 7px 16px;
+      border-radius: 5px;
+      cursor: pointer;
+      transition: background 0.15s, color 0.15s;
+    }
+    .btn-save:hover { background: var(--accent2); color: #0e0e10; }
+
+    .save-confirm {
+      font-size: 0.72rem;
+      color: var(--accent2);
+      opacity: 0;
+      transition: opacity 0.3s;
+    }
+    .save-confirm.show { opacity: 1; }
+
+    /* Saved notes list */
+    .saved-notes {
+      margin-top: 14px;
+      display: flex;
+      flex-direction: column;
+      gap: 8px;
+    }
+
+    .saved-note-item {
+      background: var(--surface2);
+      border: 1px solid var(--border);
+      border-radius: 6px;
+      padding: 10px 14px;
+      display: flex;
+      gap: 12px;
+      align-items: flex-start;
+      animation: fadeUp 0.2s ease both;
+    }
+
+    .note-ts {
+      color: var(--accent);
+      font-size: 0.72rem;
+      white-space: nowrap;
+      flex-shrink: 0;
+      padding-top: 2px;
+    }
+
+    .note-text {
+      font-size: 0.8rem;
+      color: var(--text);
+      line-height: 1.5;
+      flex: 1;
+    }
+
+    .note-delete {
+      background: none;
+      border: none;
+      color: var(--muted);
+      cursor: pointer;
+      font-size: 1rem;
+      line-height: 1;
+      padding: 0 2px;
+      flex-shrink: 0;
+      transition: color 0.15s;
+    }
+    .note-delete:hover { color: var(--red); }
+  </style>
+</head>
+<body>
+  <div class="wrapper">
+    <header>
+      <h1>YT Tracker</h1>
+      <span>learning log</span>
+    </header>
+
+    <div class="input-row">
+      <input type="text" id="urlInput" placeholder="Paste a YouTube URL…" autocomplete="off" />
+      <button class="btn-load" id="loadBtn">Load</button>
+    </div>
+    <div class="error-msg" id="errorMsg">⚠ Couldn't find a valid YouTube video ID in that URL.</div>
+
+    <div class="card" id="card">
+      <div class="video-title-bar">
+        <span class="yt-badge">YT</span>
+        <div class="video-title" id="videoTitle">Loading title…</div>
+      </div>
+
+      <div class="player-wrap">
+        <iframe id="ytPlayer" allow="autoplay; encrypted-media" allowfullscreen></iframe>
+      </div>
+
+      <div class="progress-section">
+        <div class="progress-label">current position</div>
+        <div class="time-display">
+          <div class="time-now" id="timeNow">0:00</div>
+          <div class="time-sep">/</div>
+          <div class="time-total" id="timeTotal">—</div>
+        </div>
+        <div class="progress-bar-track">
+          <div class="progress-bar-fill" id="progressFill"></div>
+        </div>
+        <div class="progress-pct" id="progressPct">0%</div>
+      </div>
+
+      <div class="notes-section">
+        <div class="notes-label">notes</div>
+        <textarea class="notes-area" id="notesArea" placeholder="Jot something down… press 'Save Note' to stamp it with the current timestamp."></textarea>
+        <div class="notes-footer">
+          <div class="timestamp-hint">
+            <span id="insertTsBtn">Insert timestamp</span> into note
+          </div>
+          <div style="display:flex;align-items:center;gap:12px;">
+            <span class="save-confirm" id="saveConfirm">saved ✓</span>
+            <button class="btn-save" id="saveNoteBtn">Save Note</button>
+          </div>
+        </div>
+        <div class="saved-notes" id="savedNotes"></div>
+      </div>
+    </div>
+  </div>
+
+  <!-- YouTube IFrame API -->
+  <script src="https://www.youtube.com/iframe_api"></script>
+  <script>
+    let player = null;
+    let pollInterval = null;
+    let currentVideoId = null;
+    let savedNotes = [];
+
+    // ── Helpers ──────────────────────────────────────────────
+    function extractVideoId(url) {
+      const patterns = [
+        /[?&]v=([a-zA-Z0-9_-]{11})/,
+        /youtu\.be\/([a-zA-Z0-9_-]{11})/,
+        /\/embed\/([a-zA-Z0-9_-]{11})/,
+        /\/shorts\/([a-zA-Z0-9_-]{11})/,
+      ];
+      for (const re of patterns) {
+        const m = url.match(re);
+        if (m) return m[1];
+      }
+      return null;
+    }
+
+    function formatTime(sec) {
+      if (!sec || isNaN(sec)) return '0:00';
+      sec = Math.floor(sec);
+      const h = Math.floor(sec / 3600);
+      const m = Math.floor((sec % 3600) / 60);
+      const s = sec % 60;
+      if (h > 0) return `${h}:${String(m).padStart(2,'0')}:${String(s).padStart(2,'0')}`;
+      return `${m}:${String(s).padStart(2,'0')}`;
+    }
+
+    // ── Load video ───────────────────────────────────────────
+    document.getElementById('loadBtn').addEventListener('click', loadVideo);
+    document.getElementById('urlInput').addEventListener('keydown', e => {
+      if (e.key === 'Enter') loadVideo();
+    });
+
+    function loadVideo() {
+      const url = document.getElementById('urlInput').value.trim();
+      const errorEl = document.getElementById('errorMsg');
+      const videoId = extractVideoId(url);
+
+      if (!videoId) {
+        errorEl.style.display = 'block';
+        return;
+      }
+      errorEl.style.display = 'none';
+      currentVideoId = videoId;
+      savedNotes = [];
+      document.getElementById('savedNotes').innerHTML = '';
+      document.getElementById('videoTitle').textContent = 'Loading title…';
+
+      // Fetch title via oEmbed
+      fetch(`https://www.youtube-nocookie.com/oembed?url=https://www.youtube.com/watch?v=${videoId}&format=json`)
+        .then(r => r.json())
+        .then(d => { document.getElementById('videoTitle').textContent = d.title || 'YouTube Video'; })
+        .catch(() => { document.getElementById('videoTitle').textContent = 'YouTube Video'; });
+
+      document.getElementById('card').classList.add('visible');
+
+      if (player && typeof player.loadVideoById === 'function') {
+        player.loadVideoById(videoId);
+      } else {
+        initPlayer(videoId);
+      }
+    }
+
+    // ── YouTube IFrame API ───────────────────────────────────
+    window.onYouTubeIframeAPIReady = function() {
+      // ready; player init happens on first load
+    };
+
+    function initPlayer(videoId) {
+      if (pollInterval) clearInterval(pollInterval);
+
+      player = new YT.Player('ytPlayer', {
+        videoId: videoId,
+        playerVars: { rel: 0, modestbranding: 1 },
+        events: {
+          onReady: () => { startPolling(); },
+          onStateChange: (e) => {
+            if (e.data === YT.PlayerState.PLAYING) startPolling();
+            else if (e.data === YT.PlayerState.PAUSED || e.data === YT.PlayerState.ENDED) stopPolling(), updateProgress();
+          }
+        }
+      });
+    }
+
+    function startPolling() {
+      stopPolling();
+      pollInterval = setInterval(updateProgress, 500);
+    }
+    function stopPolling() {
+      if (pollInterval) clearInterval(pollInterval);
+      pollInterval = null;
+    }
+
+    function updateProgress() {
+      if (!player || typeof player.getCurrentTime !== 'function') return;
+      const cur = player.getCurrentTime();
+      const dur = player.getDuration();
+      document.getElementById('timeNow').textContent = formatTime(cur);
+      document.getElementById('timeTotal').textContent = formatTime(dur);
+      const pct = dur > 0 ? Math.round((cur / dur) * 100) : 0;
+      document.getElementById('progressFill').style.width = pct + '%';
+      document.getElementById('progressPct').textContent = pct + '%';
+    }
+
+    // ── Notes ────────────────────────────────────────────────
+    document.getElementById('insertTsBtn').addEventListener('click', () => {
+      const ts = formatTime(player ? player.getCurrentTime() : 0);
+      const ta = document.getElementById('notesArea');
+      const pos = ta.selectionStart;
+      const before = ta.value.substring(0, pos);
+      const after = ta.value.substring(pos);
+      ta.value = before + `[${ts}] ` + after;
+      ta.focus();
+      ta.setSelectionRange(pos + ts.length + 3, pos + ts.length + 3);
+    });
+
+    document.getElementById('saveNoteBtn').addEventListener('click', saveNote);
+
+    function saveNote() {
+      const ta = document.getElementById('notesArea');
+      const text = ta.value.trim();
+      if (!text) return;
+
+      const ts = formatTime(player ? player.getCurrentTime() : 0);
+      const note = { ts, text, id: Date.now() };
+      savedNotes.push(note);
+      renderNote(note);
+      ta.value = '';
+
+      const confirm = document.getElementById('saveConfirm');
+      confirm.classList.add('show');
+      setTimeout(() => confirm.classList.remove('show'), 1800);
+    }
+
+    function renderNote(note) {
+      const container = document.getElementById('savedNotes');
+      const el = document.createElement('div');
+      el.className = 'saved-note-item';
+      el.dataset.id = note.id;
+      el.innerHTML = `
+        <div class="note-ts">${note.ts}</div>
+        <div class="note-text">${escapeHtml(note.text)}</div>
+        <button class="note-delete" title="Delete note">×</button>
+      `;
+      el.querySelector('.note-delete').addEventListener('click', () => {
+        savedNotes = savedNotes.filter(n => n.id !== note.id);
+        el.remove();
+      });
+      // clicking timestamp seeks the player
+      el.querySelector('.note-ts').style.cursor = 'pointer';
+      el.querySelector('.note-ts').title = 'Jump to this time';
+      el.querySelector('.note-ts').addEventListener('click', () => {
+        if (player && typeof player.seekTo === 'function') {
+          player.seekTo(parseTimestamp(note.ts), true);
+          player.playVideo();
+        }
+      });
+      container.prepend(el);
+    }
+
+    function parseTimestamp(ts) {
+      const parts = ts.split(':').map(Number);
+      if (parts.length === 3) return parts[0]*3600 + parts[1]*60 + parts[2];
+      return parts[0]*60 + (parts[1] || 0);
+    }
+
+    function escapeHtml(s) {
+      return s.replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/\n/g,'<br>');
+    }
+  </script>
+</body>
+</html>
